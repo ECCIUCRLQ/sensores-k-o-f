@@ -3,6 +3,7 @@ from typing import NamedTuple
 from time import time
 from struct import *
 import pickle
+import random
 
 
 class MessageClass(NamedTuple):
@@ -13,9 +14,11 @@ class MessageClass(NamedTuple):
 	boolData: bool
 	floatData: float
 
+randomID = random.randint(1,10)
+packRandom = pack(">B", randomID)
 curTime = int(time())
 packTime = pack(">i", curTime)
-MessageClass1 = MessageClass(1,packTime,3,'CampoSensor',True,6.0)
+MessageClass1 = MessageClass(packRandom,packTime,3,'CampoSensor',True,6.0)
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
 MESSAGE = pickle.dumps(MessageClass1)

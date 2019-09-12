@@ -23,4 +23,4 @@ sock.bind((UDP_IP, UDP_PORT))
 while True:
     data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
     MessageClass1 = pickle.loads(data)
-    print(str(MessageClass1.randomID) + str(MessageClass1.sensorType))
+    print(str(unpack(">B", MessageClass1.randomID)) + str(MessageClass1.sensorType))
