@@ -1,7 +1,9 @@
 import socket
 from typing import NamedTuple
+from time import time
 import time
-import struct
+from struct import *
+import pickle
 
 values = []
 
@@ -10,6 +12,8 @@ values = []
 UDP_IP = "10.1.137.90"
 #UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
+
+time.sleep(5)
 
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
