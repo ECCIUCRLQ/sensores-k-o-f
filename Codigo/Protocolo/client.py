@@ -1,30 +1,25 @@
 import socket
 from typing import NamedTuple
 from time import time
-from struct import *
-import pickle
+import struct
 import random
 
 
-class MessageClass(NamedTuple):
-	randomID: int
-	date: bytes
-	sensorId: int
-	sensorType: str
-	boolData: bool
-	floatData: float
+sensorId = [0x00,0x01,0x02]
+#values = (randomId, date, sensorId, sensorType, data)
+values = []
+values.append(random.randint(1,10))
+values.append(int(time()))
+values.append(1) #TeamID
+values.append(1)
+values.append(0)
 
-randomID = random.randint(1,10)
-packRandom = pack(">B", randomID)
-curTime = int(time())
-packTime = pack(">i", curTime)
-sensorId = 41
-packSensorId = pack(">B", sensorId)
-MessageClass1 = MessageClass(packRandom,packTime,packSensorId,'CampoSensor',True,6.0)
-
+s = struct.Struct('BIBBBBBf')
+pack = s.pack(values[0],values[1],values[2],sensorId[0],sensorId[1],sensorId[2],values[3],values[4])
 UDP_IP = "127.0.0.1"
+#UDP_IP = "10.1.137.67"
 UDP_PORT = 5005
-MESSAGE = pickle.dumps(MessageClass1)
+MESSAGE = pack
 
 print ("UDP target IP:", UDP_IP)
 print ("UDP target port:", UDP_PORT)
@@ -35,13 +30,16 @@ sock = socket.socket(socket.AF_INET, # Internet
 
 checker = False
 
-while not checker:
-	sock.settimeout(1)
-	sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
-	try:
-		msm = sock.recvfrom(1024)
-		checker = True
-	except socket.timeout:
-		print('I timed out.')
+# ~ while not checker:
+	# ~ sock.settimeout(1)
+	# ~ sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+	# ~ try:
+		# ~ msm = sock.recvfrom(1024)
+		# ~ checker = True
+	# ~ except socket.timeout:
+		# ~ print('I timed out.')
 
-print(msm)
+# ~ print(msm)
+
+#msm = sock.recvfrom(1024)
+#print(msm)
