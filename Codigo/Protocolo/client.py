@@ -18,7 +18,10 @@ randomID = random.randint(1,10)
 packRandom = pack(">B", randomID)
 curTime = int(time())
 packTime = pack(">i", curTime)
-MessageClass1 = MessageClass(packRandom,packTime,3,'CampoSensor',True,6.0)
+sensorId = 41
+packSensorId = pack(">B", sensorId)
+MessageClass1 = MessageClass(packRandom,packTime,packSensorId,'CampoSensor',True,6.0)
+
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
 MESSAGE = pickle.dumps(MessageClass1)
@@ -30,3 +33,6 @@ print ("message:", MESSAGE)
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
 sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+
+msm = sock.recvfrom(1024)
+print(msm)
