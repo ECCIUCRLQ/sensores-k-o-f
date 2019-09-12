@@ -32,7 +32,16 @@ print ("message:", MESSAGE)
 
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
 
-msm = sock.recvfrom(1024)
+checker = False
+
+while not checker:
+	sock.settimeout(1)
+	sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+	try:
+		msm = sock.recvfrom(1024)
+		checker = True
+	except socket.timeout:
+		print('I timed out.')
+
 print(msm)
