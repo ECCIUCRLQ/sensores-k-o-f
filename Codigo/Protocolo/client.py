@@ -2,14 +2,16 @@ from socket import *
 import socket
 from typing import NamedTuple
 from time import time
+
 import struct
 import random
+import select
 
 
 sensorId = [0x00,0x01,0x02]
 #values = (randomId, date, sensorId, sensorType, data)
 values = []
-values.append(random.randint(1,10))
+values.append(random.randint(0,255))
 values.append(int(time()))
 values.append(1) #TeamID
 values.append(1)
@@ -32,3 +34,31 @@ sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
 
 #msm = sock.recvfrom(1024)
 #print(msm)
+
+
+sockrecv = socket.socket(socket.AF_INET, # Internet
+                     socket.SOCK_DGRAM) # UDP
+
+# ~ sockrecv.setblocking(0)
+
+# ~ ready = select.select([sockrecv], [], [], 1)
+# ~ if ready[0]:
+    # ~ data = mysocket.recv(4096)
+    # ~ print ("Received")
+ 
+# ~ import time
+# ~ time.sleep(1)  
+ 
+# ~ if not (ready):
+	# ~ print ("Timeout expired")
+	
+try:
+    sockrecv.settimeout(1)
+    data = sockrecv.recv(4096)
+
+
+
+except Exception as err:
+	sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+	print("Time Error")
+    
