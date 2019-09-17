@@ -1,6 +1,7 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import time
 import os
+from ipcqueue import sysvmq
 
 #sensor pin define
 #buzzer = 14
@@ -10,12 +11,12 @@ touch = 26
 
 #GPIO port init
 def init():
-         GPIO.setwarnings(False)
-         GPIO.setmode(GPIO.BCM)
+         # ~ GPIO.setwarnings(False)
+         # ~ GPIO.setmode(GPIO.BCM)
          #GPIO.setup(buzzer,GPIO.OUT)
          #GPIO.setup(relay_in1,GPIO.OUT)
          #GPIO.setup(relay_in2,GPIO.OUT)
-         GPIO.setup(touch,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+         # ~ GPIO.setup(touch,GPIO.IN,pull_up_down=GPIO.PUD_UP)
          pass
 
 #turn on relay
@@ -31,23 +32,25 @@ def init():
 
 
 touchstatus = False
+q = sysvmq.Queue(1)
 #read digital touch sensor
 def read_touchsensor():
          global touchstatus
-         if (GPIO.input(touch)==True):
-            touchstatus = not touchstatus
-            if touchstatus:
-                print ("Ya Oscar!!")
-                print ("\n")
-                    #buzzer_on()
-                    #relay_on()
+         q.put(True, msg_type=1)
+         # ~ if (GPIO.input(touch)==True):
+            # ~ touchstatus = not touchstatus
+            # ~ if touchstatus:
+                # ~ print ("Ya Oscar!!")
+                # ~ print ("\n")
+                    # ~ #buzzer_on()
+                    # ~ #relay_on()
                   
-            else:
-                print ("Turn off relay")
-                print ("\n")
-                           #buzzer_on()
-                           #relay_off()
-            pass
+            # ~ else:
+                # ~ print ("Turn off relay")
+                # ~ print ("\n")
+                           # ~ #buzzer_on()
+                           # ~ #relay_off()
+            # ~ pass
                   
 
 #main loop
@@ -69,4 +72,4 @@ if __name__ == '__main__':
          except KeyboardInterrupt:
                   pass
          pass
-GPIO.cleanup()
+# ~ GPIO.cleanup()
