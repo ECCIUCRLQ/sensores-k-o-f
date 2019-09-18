@@ -1,9 +1,8 @@
 import socket
-from typing import NamedTuple
-from time import time
+# ~ from typing import NamedTuple
 import time
-from struct import *
-import pickle
+import struct
+
 
 values = []
 
