@@ -28,6 +28,7 @@ while True:
 	UDP_IP = "127.0.0.1"
 	#UDP_IP = "10.1.137.67"
 	UDP_PORT = 5005
+	UDP_PORT2 = 5006
 	MESSAGE = pack
 
 	print ("UDP target IP:", UDP_IP)
@@ -52,19 +53,23 @@ while True:
 
 # ~ print(msm)
 
-	msm, addr = sock.recvfrom(1024)
-	print(str(msm[0])+ " " + str(msm[1]) + " " + str(msm[2]) + " " + str(msm[3]))  #IDK if it already necessary 
+	# ~ msm, addr = sock.recvfrom(1024)
+	# ~ print(str(msm[0])+ " " + str(msm[1]) + " " + str(msm[2]) + " " + str(msm[3]))  #IDK if it already necessary 
 
 
 	sockrecv = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-
-
+    
+	# ~ while not checker:
+	sockrecv.bind((UDP_IP, UDP_PORT2))
 	while not checker:
 		try:
 			sockrecv.settimeout(1)
 			data = sockrecv.recv(4096)
 			checker = True
+			ss = struct.Struct("BBBBB")
+			prueba = ss.unpack(data)
+			print(str(prueba[0]))
 
 		except Exception as err:
 			sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))

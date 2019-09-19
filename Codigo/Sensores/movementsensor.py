@@ -1,4 +1,3 @@
-
 #  MBTechWorks.com 2017
 #  Use an HC-SR501 PIR to detect motion (infrared)
 
@@ -31,13 +30,13 @@ q = sysvmq.Queue(1)
 # ~ registro = open('reporte.txt', 'w')
 try:
   q.put(True, msg_type=1)
-  while True:
-   if GPIO.input(pir) == True:      #If PIR pin goes high, motion is detected
+  # ~ while True:
+   # ~ if GPIO.input(pir) == True:      #If PIR pin goes high, motion is detected
        # ~ time.sleep(1)
        # ~ print (mensaje + str(avance))
        # ~ registro.write(mensaje + time.strftime("%c") +"\n")
        # ~ avance = avance + 1
-       q.put(True, msg_type=1)
+       # ~ q.put(True, msg_type=1)
        
     #with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
      #s.connect((HOST, PORT))
@@ -51,5 +50,4 @@ finally:
   # ~ GPIO.output(led, False)           #Turn off LED in case left on
   # ~ GPIO.cleanup()                    #reset all GPIO
   # ~ registro.close()
-  print ("Program ended")
-    
+print ("Program ended")
