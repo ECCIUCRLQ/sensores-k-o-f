@@ -8,11 +8,11 @@ values = []
 
 #BiiBf
 	
-UDP_IP = "10.1.137.90"
-#UDP_IP = "127.0.0.1"
+#UDP_IP = "10.1.137.90"
+UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
 
-time.sleep(5)
+time.sleep(5) # Test the client's timeout
 
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP

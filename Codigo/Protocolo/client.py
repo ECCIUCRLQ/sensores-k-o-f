@@ -2,7 +2,7 @@ from socket import *
 import socket
 # ~ from typing import NamedTuple
 from time import time
-import time
+#import time
 import struct
 import random
 import select
@@ -20,7 +20,7 @@ values.append(0)
 q = sysvmq.Queue(1)
 s = struct.Struct('BIBBBBBf')
 
-#checker = False
+checker = False
 
 while True:
 	values[4] = q.get(block=True, msg_type=1)
@@ -60,11 +60,12 @@ while True:
                      socket.SOCK_DGRAM) # UDP
 
 
-	
-	try:
-		sockrecv.settimeout(1)
-		data = sockrecv.recv(4096)
+	while not checker:
+		try:
+			sockrecv.settimeout(1)
+			data = sockrecv.recv(4096)
+			checker = True
 
-	except Exception as err:
-		sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
-		print("Time Error")
+		except Exception as err:
+			sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+			print("Time Error")

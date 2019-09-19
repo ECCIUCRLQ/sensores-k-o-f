@@ -62,8 +62,8 @@ def main():
          print ("...................................................................Ok")
          print ("...................................................................Please touch")
          print ("\n")
-         while True:
-                  read_touchsensor()
+         #while True:
+         read_touchsensor()
 
 if __name__ == '__main__':
          try:
