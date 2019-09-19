@@ -8,7 +8,7 @@ values = []
 
 #BiiBf
 	
-UDP_IP = "10.1.137.90"
+UDP_IP = "10.1.138.118"
 #UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
 

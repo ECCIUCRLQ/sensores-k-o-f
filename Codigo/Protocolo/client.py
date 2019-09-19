@@ -1,21 +1,22 @@
 from socket import *
 import socket
+from ipcqueue import sysvmq
 # ~ from typing import NamedTuple
-from time import time
-import time
+from time import *
+import time as t
 import struct
 import random
 import select
-from ipcqueue import sysvmq
+
 
 sensorId = [0x00,0x01,0x02]
 #values = (randomId, date, sensorId, sensorType, data)
 values = []
-values.append(random.randint(0,255))
-values.append(int(time()))
-values.append(1) #TeamID
-values.append(1)
-values.append(0)
+#values.append(random.randint(0,255))
+#values.append(int(time()))
+#values.append(1) #TeamID
+#values.append(1)
+#values.append(0)
 
 q = sysvmq.Queue(1)
 s = struct.Struct('BIBBBBBf')
@@ -23,11 +24,18 @@ s = struct.Struct('BIBBBBBf')
 #checker = False
 
 while True:
-	values[4] = q.get(block=True, msg_type=1)
+	t.sleep(5)
+	values.append(random.randint(0,255))
+	values.append(int(time()))
+	values.append(1) #TeamID
+	values.append(1)
+	values.append(0)
+	#values[4] = q.get(block=True, msg_type=1)
+	values[4] = 0.0
 	pack = s.pack(values[0],values[1],values[2],sensorId[0],sensorId[1],sensorId[2],values[3],values[4])
-	UDP_IP = "127.0.0.1"
-	#UDP_IP = "10.1.137.67"
-	UDP_PORT = 5005
+	#UDP_IP = "127.0.0.1"
+	UDP_IP = "10.1.138.56"
+	UDP_PORT = 5000
 	MESSAGE = pack
 
 	print ("UDP target IP:", UDP_IP)
@@ -61,10 +69,10 @@ while True:
 
 
 	
-	try:
-		sockrecv.settimeout(1)
-		data = sockrecv.recv(4096)
+try:
+	sockrecv.settimeout(1)
+	data = sockrecv.recv(4096)
 
-	except Exception as err:
-		sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
-		print("Time Error")
+except Exception as err:
+	sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+	print("Time Error")
