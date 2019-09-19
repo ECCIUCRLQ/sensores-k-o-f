@@ -1,4 +1,5 @@
 #import RPi.GPIO as GPIO
+from time import time
 import time
 import os
 from ipcqueue import sysvmq
@@ -25,33 +26,21 @@ def init():
          #GPIO.output(relay_in1,GPIO.LOW)
          #GPIO.output(relay_in2,GPIO.LOW)
 
-#turn off relay
-#def relay_off():
-                  #GPIO.output(relay_in1,GPIO.HIGH)
-                  #GPIO.output(relay_in2,GPIO.HIGH)
-
-
 touchstatus = False
 q = sysvmq.Queue(1)
 #read digital touch sensor
 def read_touchsensor():
          global touchstatus
-         q.put(True, msg_type=1)
+
          # ~ if (GPIO.input(touch)==True):
             # ~ touchstatus = not touchstatus
             # ~ if touchstatus:
-                # ~ print ("Ya Oscar!!")
-                # ~ print ("\n")
-                    # ~ #buzzer_on()
-                    # ~ #relay_on()
-                  
+                    #q.put(True, msg_type=1)
+
             # ~ else:
                 # ~ print ("Turn off relay")
                 # ~ print ("\n")
-                           # ~ #buzzer_on()
-                           # ~ #relay_off()
             # ~ pass
-                  
 
 #main loop
 def main():
@@ -62,8 +51,8 @@ def main():
          print ("...................................................................Ok")
          print ("...................................................................Please touch")
          print ("\n")
-         #while True:
-         read_touchsensor()
+         while True:
+            read_touchsensor()
 
 if __name__ == '__main__':
          try:
