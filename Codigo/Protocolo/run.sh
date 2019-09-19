@@ -1,4 +1,6 @@
 #!/bin/bash 
+python2 server.py &
+sleep 1
 python2 client.py &
 sleep 1
 python2 interpreter.py &
