@@ -13,7 +13,7 @@ sensorId = [0x00,0x01,0x02]
 values = []
 values.append(random.randint(0,255))
 values.append(int(time()))
-values.append(1) #TeamID
+values.append(4) #TeamID
 values.append(1)
 values.append(0)
 
