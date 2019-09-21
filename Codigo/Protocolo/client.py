@@ -2,8 +2,8 @@ from socket import *
 import socket
 from ipcqueue import sysvmq
 # ~ from typing import NamedTuple
-from time import *
-import time as t
+from time import time
+#import time
 import struct
 import random
 import select
@@ -12,30 +12,25 @@ import select
 sensorId = [0x00,0x01,0x02]
 #values = (randomId, date, sensorId, sensorType, data)
 values = []
-#values.append(random.randint(0,255))
-#values.append(int(time()))
-#values.append(1) #TeamID
-#values.append(1)
-#values.append(0)
+values.append(random.randint(0,255))
+values.append(int(time()))
+values.append(4) #TeamID
+values.append(1)
+values.append(0)
 
 q = sysvmq.Queue(1)
 s = struct.Struct('BIBBBBBf')
 
-#checker = False
+checker = False
 
 while True:
-	t.sleep(5)
-	values.append(random.randint(0,255))
-	values.append(int(time()))
-	values.append(1) #TeamID
-	values.append(1)
-	values.append(0)
-	#values[4] = q.get(block=True, msg_type=1)
+	values[4] = q.get(block=True, msg_type=1)
 	values[4] = 0.0
 	pack = s.pack(values[0],values[1],values[2],sensorId[0],sensorId[1],sensorId[2],values[3],values[4])
-	#UDP_IP = "127.0.0.1"
-	UDP_IP = "10.1.138.56"
-	UDP_PORT = 5000
+	UDP_IP = "127.0.0.1"
+	#UDP_IP = "10.1.137.67"
+	UDP_PORT = 5005
+	UDP_PORT2 = 5006
 	MESSAGE = pack
 
 	print ("UDP target IP:", UDP_IP)
@@ -60,13 +55,23 @@ while True:
 
 # ~ print(msm)
 
-	msm, addr = sock.recvfrom(1024)
-	print(str(msm[0])+ " " + str(msm[1]) + " " + str(msm[2]) + " " + str(msm[3]))  #IDK if it already necessary 
+	# ~ msm, addr = sock.recvfrom(1024)
+	# ~ print(str(msm[0])+ " " + str(msm[1]) + " " + str(msm[2]) + " " + str(msm[3]))  #IDK if it already necessary 
 
 
 	sockrecv = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-
+    
+	# ~ while not checker:
+	sockrecv.bind((UDP_IP, UDP_PORT2))
+	while not checker:
+		try:
+			sockrecv.settimeout(1)
+			data = sockrecv.recv(4096)
+			checker = True
+			ss = struct.Struct("BBBBB")
+			prueba = ss.unpack(data)
+			print(str(prueba[0]))
 
 	
 try:
