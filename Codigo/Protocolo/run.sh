@@ -8,4 +8,4 @@ sleep 1
 cd ..
 cd Sensores/
 python2 movementsensor.py &
-sleep1 touchsensor.py &
+python2 touchsensor.py &
