@@ -1,4 +1,4 @@
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from time import time
 import time
 import os
@@ -12,12 +12,12 @@ touch = 26
 
 #GPIO port init
 def init():
-         # ~ GPIO.setwarnings(False)
-         # ~ GPIO.setmode(GPIO.BCM)
-         #GPIO.setup(buzzer,GPIO.OUT)
-         #GPIO.setup(relay_in1,GPIO.OUT)
-         #GPIO.setup(relay_in2,GPIO.OUT)
-         # ~ GPIO.setup(touch,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+         GPIO.setwarnings(False)
+         GPIO.setmode(GPIO.BOARD)
+         # ~ #GPIO.setup(buzzer,GPIO.OUT)
+         # ~ #GPIO.setup(relay_in1,GPIO.OUT)
+         # ~ #GPIO.setup(relay_in2,GPIO.OUT)
+         GPIO.setup(touch,GPIO.IN)
          pass
 
 #turn on relay
@@ -32,10 +32,10 @@ q = sysvmq.Queue(1)
 def read_touchsensor():
          global touchstatus
 
-         # ~ if (GPIO.input(touch)==True):
-            # ~ touchstatus = not touchstatus
-            # ~ if touchstatus:
-                    #q.put(True, msg_type=1)
+         if (GPIO.input(touch)==True):
+            touchstatus = not touchstatus
+            if touchstatus:
+				q.put(True, msg_type=1)
 
             # ~ else:
                 # ~ print ("Turn off relay")
@@ -61,4 +61,4 @@ if __name__ == '__main__':
          except KeyboardInterrupt:
                   pass
          pass
-# ~ GPIO.cleanup()
+	GPIO.cleanup()

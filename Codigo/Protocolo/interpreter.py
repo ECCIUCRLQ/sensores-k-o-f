@@ -5,7 +5,6 @@ import time
 
 q = sysvmq.Queue(2)
 s = struct.Struct('BIBBBBBf')
-value = 1
 
 while True:
 	data = q.get(block=True, msg_type=1)
@@ -50,10 +49,10 @@ while True:
 		sensorType = "Ultrasonico"
 
 	fileFormat = ".txt"
-	fileName = baseName + str(value) + fileFormat
+	fileName = baseName + fileFormat
 
 	f = open (fileName, "a") #The option "a" makes sure that the new data does not erase the previous data
 	f.write(str(info[0]) + " "+ str(dtime) + " " + baseName + " " + str(info[3]) + " " + str(info[4]) + " " + sensorType + " " + str(info[6]) + " " + str(info[7]) + "\n")
 	f.close()
 	
-	value = value + 1
+	# ~ value = value + 1

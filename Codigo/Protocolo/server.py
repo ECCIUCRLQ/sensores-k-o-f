@@ -1,18 +1,13 @@
 import socket
-# ~ from typing import NamedTuple
 import time
 import struct
 from ipcqueue import sysvmq
 
-
 values = []
-
-#BiiBf
 	
 #UDP_IP = "10.1.137.90"
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
-UDP_PORT2 = 5006
 
 time.sleep(5) # Test the client's timeout
 
@@ -29,6 +24,6 @@ while True:
     dtime = time.ctime(values[1])
     print(str(values[0]) + " " + str(dtime) + " " + str(values[2]) + " " + str(values[3]) + " " + str(values[4]) + " " + str(values[5]) + " " + str(values[6]) + " " + str(values[7]))
     msm = ss.pack(values[0],values[2],values[3],values[4],values[5])
-    sock.sendto(msm, (UDP_IP, UDP_PORT2))
+    sock.sendto(msm, (addr))
     q.put(data, msg_type=1)
     
