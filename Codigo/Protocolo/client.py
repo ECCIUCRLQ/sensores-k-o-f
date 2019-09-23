@@ -20,6 +20,8 @@ values.append(0)
 
 q = sysvmq.Queue(1)
 s = struct.Struct('BIBBBBBf')
+sensorData = struct.Struct('BBf')
+
 UDP_IP = "127.0.0.1"
 #UDP_IP = "10.1.137.67"
 UDP_PORT = 5005
@@ -30,9 +32,11 @@ checker = False
 
 while True:
 	checker = False
-	values[4] = q.get(block=True, msg_type=1)
+	packet = q.get(block=True, msg_type=1)
+	packArray = sensorData.unpack(packet)
+
 	values[4] = 0.0
-	pack = s.pack(values[0],values[1],values[2],sensorId[0],sensorId[1],sensorId[2],values[3],values[4])
+	pack = s.pack(values[0],values[1],values[2],sensorId[0],sensorId[1],packArray[0],packArray[1],packArray[2])
 	MESSAGE = pack
 
 	print ("UDP target IP:", UDP_IP)
