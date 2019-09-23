@@ -10,13 +10,10 @@ import select
 
 
 sensorId = [0x00,0x01,0x02]
-#values = (randomId, date, sensorId, sensorType, data)
 values = []
 values.append(random.randint(0,255))
 values.append(int(time()))
 values.append(4) #TeamID
-values.append(1)
-values.append(0)
 
 q = sysvmq.Queue(1)
 s = struct.Struct('BIBBBBBf')
@@ -34,8 +31,8 @@ while True:
 	checker = False
 	packet = q.get(block=True, msg_type=1)
 	packArray = sensorData.unpack(packet)
-
-	values[4] = 0.0
+	values[0] = random.randint(0,255)
+	values[1] = int(time())
 	pack = s.pack(values[0],values[1],values[2],sensorId[0],sensorId[1],packArray[0],packArray[1],packArray[2])
 	MESSAGE = pack
 

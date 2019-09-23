@@ -1,6 +1,7 @@
 import socket
 import time
 import struct
+import select
 from ipcqueue import sysvmq
 
 values = []
@@ -19,11 +20,16 @@ q = sysvmq.Queue(2)
 s = struct.Struct("BIBBBBBf")
 ss = struct.Struct("BBBBB")
 while True:
-    data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-    values = s.unpack(data)
-    dtime = time.ctime(values[1])
-    print(str(values[0]) + " " + str(dtime) + " " + str(values[2]) + " " + str(values[3]) + " " + str(values[4]) + " " + str(values[5]) + " " + str(values[6]) + " " + str(values[7]))
-    msm = ss.pack(values[0],values[2],values[3],values[4],values[5])
-    sock.sendto(msm, (addr))
-    q.put(data, msg_type=1)
-    
+    readable = select.select([sock],[],[],6)
+    if readable[0]:
+        data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+        values = s.unpack(data)
+        dtime = time.ctime(values[1])
+        print(str(values[0]) + " " + str(dtime) + " " + str(values[2]) + " " + str(values[3]) + " " + str(values[4]) + " " + str(values[5]) + " " + str(values[6]) + " " + str(values[7]))
+        msm = ss.pack(values[0],values[2],values[3],values[4],values[5])
+        sock.sendto(msm, (addr))
+        q.put(data, msg_type=1)
+    else:
+        print ("Pi sensors are dead")
+
+print("End of server")    
