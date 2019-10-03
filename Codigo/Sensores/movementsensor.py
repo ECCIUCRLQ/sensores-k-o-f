@@ -12,9 +12,9 @@ import socket
 
 #Data array that is going to be packed
 data = []
-data.append(1)
-data.append(1)
-data.append(True)
+data.append(1) #Sensor Id
+data.append(1) #Data type
+data.append(True) #Data
 
 #Struct needed to pack the data that says which sensor is this
 sensorData = struct.Struct('BBf')

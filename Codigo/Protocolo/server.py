@@ -25,7 +25,20 @@ while True:
         data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
         values = s.unpack(data)
         dtime = time.ctime(values[1])
+        #values[0] => Random(ACK)
+        #values[1] => Time
+        #values[2] => Team Id
+        #values[3] => Sensor Id
+        #values[4] => Sensor Id
+        #values[5] => Sensor Id
+        #values[6] => Data Tyoe
+        #values[7] => Data
         print(str(values[0]) + " " + str(dtime) + " " + str(values[2]) + " " + str(values[3]) + " " + str(values[4]) + " " + str(values[5]) + " " + str(values[6]) + " " + str(values[7]))
+        #if process( Team Id(values[2]).abierto)
+        	#send()
+        #else 
+        	#Malloc-Maraviloso
+
         msm = ss.pack(values[0],values[2],values[3],values[4],values[5])
         sock.sendto(msm, (addr))
         q.put(data, msg_type=1)
