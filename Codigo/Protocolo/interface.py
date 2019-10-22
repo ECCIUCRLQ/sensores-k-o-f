@@ -3,3 +3,6 @@ from ipcqueue import sysvmq
 import struct
 import memory_manager
 
+def malloc(sensorId, packetSize):
+		
+

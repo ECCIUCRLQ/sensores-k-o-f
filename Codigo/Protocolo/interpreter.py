@@ -1,7 +1,10 @@
+#Imports
 from ipcqueue import sysvmq
 import struct
 import select
 import time
+import team_interpreter
+#Imports
 
 q = sysvmq.Queue(2)
 s = struct.Struct('BIBBBBBf')
@@ -15,18 +18,7 @@ while True:
 	sensorType = str(info[5])
 
 	#Block of code related to the teamId
-	if teamId == '1':
-		baseName = "Whitenoise"
-	elif teamId == '2':
-		baseName = "FlamingoBlack"
-	elif teamId == '3':
-		baseName = "GISSO"
-	elif teamId == '4':
-		baseName = "KOF"
-	elif teamId == '5':
-		baseName = "Equipo404"
-	elif teamId == '6':
-		baseName = "Poffis"
+	baseName = team_interpreter.interpret(teamId)
 	
 	#Block of code related to the sensorType
 	if sensorType == '1':
