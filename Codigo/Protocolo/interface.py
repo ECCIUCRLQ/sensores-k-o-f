@@ -55,6 +55,6 @@ while True:
 	packet = queueR.get(block=True, msg_type=1)
 	packetU = ss.unpack(packet)
 	if(packetU[0]==0):
-		store(packetU[2], packetU[3], packetU[1], packetU[4])
+		store(packetU[3], packetU[2], packetU[1], packetU[4])
 	else:
 		get_info(packetU[2], packetU[3])
