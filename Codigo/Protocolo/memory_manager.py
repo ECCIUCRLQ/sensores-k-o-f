@@ -23,20 +23,31 @@ def create_id():
 	num_pages += 1
 	return id
 
-def store(date, teamId, sensorId, dataType, data, pageId):
+def store(date, teamId, sensorId, data, pageId):
 	team = team_interpreter.interpret(teamId)
 	sensor = sensor_interpreter.interpret(sensorId)
-	path = "pages/" + team
+	path = "./pages/" + team
 	if(os.path.exists(path)==False):
 		os.makedirs(path)
-	file = open(path + sensor + str(pageId), "a")
-	file.write("%i" % str(date) + "%f" % str(data))
+	file = open(path + sensor + str(pageId) + ".txt", "a")
+	file.write("%i" % str(date) + " " + "%f" % str(data) + "\n")
 	file.close()
 
 def  new_page(id):
 	global pages_list
 
 	pass
+
+def read(teamId, sensorId, pageId):
+	vector = []
+	team = team_interpreter.interpret(teamId)
+	sensor = sensor_interpreter.interpret(sensorId)
+	path = "./pages/" + team
+	with open(path+sensor+str(pageId)+".txt", "rt") as myfile:
+		for myline in myfile:
+			vector.append(myline)
+	return vector
+
 
 class PageInfo(): #Need to analice more that
     def __init__(self, *args, **kwargs):

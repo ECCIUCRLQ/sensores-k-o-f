@@ -19,6 +19,7 @@ sock.bind((UDP_IP, UDP_PORT))
 q = sysvmq.Queue(2)
 s = struct.Struct("BIBBBBBf")
 ss = struct.Struct("BBBBB")
+sss = struct.Struct("BIBBf")
 while True:
     readable = select.select([sock],[],[],6)
     if readable[0]:
