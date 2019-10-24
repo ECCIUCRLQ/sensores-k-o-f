@@ -139,8 +139,9 @@ def hourInfo(hours, length, dataType):
 	# ~ print "El uso de graphics es python graphics.py [IDGrupo]\n"
 	
 if len(sys.argv) == 3: # Contiene el numero de grupo y el numero de sensor
-	q = sysvmq.Queue(16)
-	s = struct.Struct("II")
+	q = sysvmq.Queue(15)
+	mainQueue = sysvmq.Queue(2)
+	s = struct.Struct("BIBBf")
 	ss = struct.Struct("II")
 	dataType = 0
 	graphicsName = ["Whitenoise Movimiento", "Whitenoise Big Sound", "Flamingo Movimiento", "Flamingo Fotoresistor", 
@@ -157,11 +158,14 @@ if len(sys.argv) == 3: # Contiene el numero de grupo y el numero de sensor
 		dataType = 3 #Integer data type
 		
 	if (dataType > 0 and dataType < 3):
-		data = ss.pack(int(sys.argv[1]))
-		q.put(data, msg_type=1)
+		operation = '1'
+		emptyDate = 0
+		emptyData = 0
+		data = s.pack(operation, emptyDate, sys.argv[1], sys.argv[2], emptyData)
+		mainQueue.put(data, msg_type=1)
 		receive = q.get(block=True, msg_type=1)
-		numPages = s.unpack(receive)
-		numData = numPages * 1024 / 8
+		numPages = ss.unpack(receive)
+		numData = numPages[0]
 		packsArray = []
 		for x in range(0, numData):
 			receive = q.get(block=True, msg_type=1)
