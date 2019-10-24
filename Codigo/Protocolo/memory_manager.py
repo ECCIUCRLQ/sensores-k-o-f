@@ -42,13 +42,14 @@ def store(date, teamId, sensorId, data, pageId):
 		
 	team = str(team_interpreter.interpret(teamId))
 	sensor = str(sensor_interpreter.interpret(sensorId))
+	pageId1 = str(int(pageId))
 	path = "./pages/" + team
 	if(os.path.exists(path)==False):
 		os.makedirs(path)
 		
-	path = path + sensor + ".txt"
+	path = path + sensor + pageId1 + ".txt"
 	file = open(str(path), "a")
-	file.write("%d" % int(date) + " " + "%f" % float(data) + "\n")
+	file.write("%d" % int(date) + " " + "%f" % float(data) + " \n")
 	file.close()
 
 def  new_page(identifier):
@@ -61,7 +62,8 @@ def read(teamId, sensorId, pageId):
 	team = team_interpreter.interpret(teamId)
 	sensor = sensor_interpreter.interpret(sensorId)
 	path = "./pages/" + team
-	with open(path+sensor+str(pageId)+".txt", "rt") as myfile:
+	pageId1 = pageId + 1
+	with open(path+sensor+str(pageId1)+".txt", "rt") as myfile:
 		for myline in myfile:
 			vector.append(myline)
 	return vector

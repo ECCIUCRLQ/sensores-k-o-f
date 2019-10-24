@@ -18,7 +18,7 @@ def hourInfo(hours, length, dataType):
 		intTimes = []
 		
 	while(exteriorIndex < len(packsArray)):
-		timePack = str(time.ctime(packsArray[indice])).split(" ") #Se pone en un string cada parte de la fecha
+		timePack = str(time.ctime(packsArray[exteriorIndex])).split(" ") #Se pone en un string cada parte de la fecha
 		if(len(hours) == 0): #En caso de que sea la primera hora que se agrega
 			splitTime = timePack[3].split(":")
 			hours.append(splitTime[0]) #Se saca solo la hora
@@ -169,7 +169,7 @@ if len(sys.argv) == 3: # Contiene el numero de grupo y el numero de sensor
 		numPages = ss.unpack(receive)
 		numData = numPages[0]
 		packsArray = []
-		for x in range(0, numData):
+		for x in range(0, 100):
 			receive = q.get(block=True, msg_type=1)
 			receivedData = ss.unpack(receive)
 			packsArray.append(receivedData[0]) #Date
@@ -177,9 +177,9 @@ if len(sys.argv) == 3: # Contiene el numero de grupo y el numero de sensor
 			
 		hour = []
 		length = []
-		hourInfo(hours, length, dataType)
+		hourInfo(hour, length, dataType)
 		y_pos = np.arange(len(hour))
-		plt.barh(y_pos, length, align='center', alpha = 100)
+		plt.barh(y_pos, length, align='center')
 		plt.xticks(y_pos, hour)
 		plt.ylabel('Frecuencia')
 		if (sys.argv[1] == '1' and sys.argv[2] == '1'):
