@@ -15,6 +15,7 @@ lastId = 0
 
 def malloc_maravilloso(sensorId, teamId):
 		global page_table
+		global lastId
 		page = memory_manager.create_page(lastId)
 		lastId += 1
 		page_table[(sensorId, teamId)] = ProcessInfo()
