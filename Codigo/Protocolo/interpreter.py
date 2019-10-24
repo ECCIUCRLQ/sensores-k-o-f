@@ -4,6 +4,7 @@ import struct
 import select
 import time
 import team_interpreter
+import sensor_interpreter
 #Imports
 
 q = sysvmq.Queue(2)
@@ -21,24 +22,7 @@ while True:
 	baseName = team_interpreter.interpret(teamId)
 	
 	#Block of code related to the sensorType
-	if sensorType == '1':
-		sensorType = "Movimiento"
-	elif sensorType == '2':
-		sensorType = "Sonido (Big Sound)"
-	elif sensorType == '3':
-		sensorType = "Luz"
-	elif sensorType == '4':
-		sensorType = "Shock"
-	elif sensorType == '5':
-		sensorType = "Touch"
-	elif sensorType == '6':
-		sensorType = "Humedad"
-	elif sensorType == '7':
-		sensorType = "Big Sound"
-	elif sensorType == '8':
-		sensorType = "Temperatura"
-	elif sensorType == '9':
-		sensorType = "Ultrasonico"
+	sensorType == sensor_interpreter.interpret(sensorType)
 
 	fileFormat = ".txt"
 	fileName = baseName + fileFormat
