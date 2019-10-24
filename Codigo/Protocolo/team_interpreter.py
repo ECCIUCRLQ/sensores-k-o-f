@@ -1,13 +1,16 @@
-def interpret(id):
-	if (id == '1'):
+def interpret(identifier):
+	if (identifier == '1'):
 		return "Whitenoise"
-	elif (id == '2'):
+	elif (identifier == '2'):
 		return "FlamingoBlack"
-	elif (id == '3'):
+	elif (identifier == '3'):
 		return "GISSO"
-	elif (id == '4'):
+	elif (identifier == '4'):
 		return "KOF"
-	elif (id == '5'):
+	elif (identifier == '5'):
 		return "Equipo404"
-	elif (id == '6'):
+	elif (identifier == '6'):
 		return "Poffis"
+		
+	else:
+		return "Generico"

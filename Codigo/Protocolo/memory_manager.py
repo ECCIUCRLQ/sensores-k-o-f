@@ -1,39 +1,57 @@
 #Imports
 import pickle
-import file_manager
 import os
 import team_interpreter
 import sensor_interpreter
+import time
 #Imports
 
 num_pages = 0
 pages_list = {}
 
 
-def create_page():
-	global num_pages
-	global pages_list
-	id = create_id
-	pages_list[id] = PageInfo()
-	return id
+def create_page(identifier):
+	# ~ global num_pages
+	# ~ global pages_list
+	identifier = identifier + 1
+	pages_list[identifier] = PageInfo()
+	return identifier
+	
 
-def create_id():
-	global num_pages
-	id = hex(num_pages)
-	num_pages += 1
-	return id
-
+# ~ def create_id():
+	# ~ global num_pages
+	# ~ identifier = hex(num_pages)
+	# ~ num_pages += 1
+	# ~ return identifier
+	
+#pageID como quinto argumento de lo de abajo
 def store(date, teamId, sensorId, data, pageId):
-	team = team_interpreter.interpret(teamId)
-	sensor = sensor_interpreter.interpret(sensorId)
+	# ~ team = ""
+	# ~ if (teamId == '1'):
+		# ~ team = "Whitenoise"
+	# ~ elif (teamId == '2'):
+		# ~ team = "FlamingoBlack"
+	# ~ elif (teamId == '3'):
+		# ~ team = "GISSO"
+	# ~ elif (id == '4'):
+		# ~ team = "KOF"
+	# ~ elif (id == '5'):
+		# ~ team = "Equipo404"
+	# ~ elif (id == '6'):
+		# ~ team = "Poffis"
+		
+	team = str(team_interpreter.interpret(teamId))
+	sensor = str(sensor_interpreter.interpret(sensorId))
 	path = "./pages/" + team
 	if(os.path.exists(path)==False):
 		os.makedirs(path)
-	file = open(path + sensor + str(pageId) + ".txt", "a")
-	file.write("%i" % str(date) + " " + "%f" % str(data) + "\n")
+		
+	path = path + sensor + ".txt"
+	file = open(str(path), "a")
+	file.write("%d" % int(date) + " " + "%f" % float(data) + "\n")
 	file.close()
 
-def  new_page(id):
+def  new_page(identifier):
 	global pages_list
 
 	pass

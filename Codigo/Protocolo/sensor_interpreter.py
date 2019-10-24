@@ -1,19 +1,22 @@
-def interpret(id):
-	if id == '1':
+def interpret(identifier):
+	if identifier == '1':
 		return "Movimiento"
-	elif id == '2':
+	elif identifier == '2':
 		return "Sonido (Big Sound)"
-	elif id == '3':
+	elif identifier == '3':
 		return "Luz"
-	elif id == '4':
+	elif identifier == '4':
 		return "Shock"
-	elif id == '5':
+	elif identifier == '5':
 		return "Touch"
-	elif id == '6':
+	elif identifier == '6':
 		return "Humedad"
-	elif id == '7':
+	elif identifier == '7':
 		return "Big Sound"
-	elif id == '8':
+	elif identifier == '8':
 		return "Temperatura"
-	elif id == '9':
+	elif identifier == '9':
 		return "Ultrasonico"
+		
+	else:
+		return "Generico"

@@ -42,8 +42,8 @@ while True:
 
         msm = ss.pack(values[0],values[2],values[3],values[4],values[5])
         sock.sendto(msm, (addr))
-        values[0] = 0 
-        sensors_info = sss.pack(values[0], values[1], values[2], values[3], values[7])
+        # ~ values[0] = 0 
+        sensors_info = sss.pack(0, values[1], values[2], values[3], values[7])
         q.put(sensors_info, msg_type=1)
     else:
         print ("Pi sensors are dead")
