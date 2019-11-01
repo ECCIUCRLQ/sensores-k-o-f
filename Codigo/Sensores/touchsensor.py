@@ -49,6 +49,7 @@ def read_touchsensor():
 
 #main loop
 def main():
+         time.sleep(1)
          print ("...................................................................System initializing...")
          init()
          print ("...................................................................Ok")

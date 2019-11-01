@@ -220,6 +220,7 @@ if len(sys.argv) == 3: # Contiene el numero de grupo y el numero de sensor
 			
 		elif (sys.argv[1] == '6' and sys.argv[2] == '7'):
 			plt.title(graphicsName[13])
+		plt.show()
 			
 	else:
 		print "Combinacion de equipos y sensores desconocida"
