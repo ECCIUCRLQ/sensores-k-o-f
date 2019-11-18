@@ -35,14 +35,17 @@ if (len(sys.argv)) == 2:
 		#In case that an operation is received
 		if readable[0]:
 			data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-			if(operation == 0):
+			if(data[0] == 0):
 				f = open("bin.txt", "rb+")
-				f.write()
+				f.seek(memory_meta)
+				f.write((data[1]).to_bytes(1, "big"))
+				f.write((data[1]).to_bytes(1, "big"))
+				file_size = stuct.unpack("I", data[2:6])
+				f.write((file_size).to_bytes(4, "big"))
 				f.close()
 				memory_size -= 8 #change this to package size
 				msm = memory_size - 4
 				#sock.sendto(msm, (addr)) returns available memory
-				
 				
 			else:
 				#read file
