@@ -25,21 +25,7 @@ def create_page(identifier):
 	# ~ return identifier
 	
 #pageID como quinto argumento de lo de abajo
-def store(date, teamId, sensorId, data, pageId):
-	# ~ team = ""
-	# ~ if (teamId == '1'):
-		# ~ team = "Whitenoise"
-	# ~ elif (teamId == '2'):
-		# ~ team = "FlamingoBlack"
-	# ~ elif (teamId == '3'):
-		# ~ team = "GISSO"
-	# ~ elif (id == '4'):
-		# ~ team = "KOF"
-	# ~ elif (id == '5'):
-		# ~ team = "Equipo404"
-	# ~ elif (id == '6'):
-		# ~ team = "Poffis"
-		
+def store(date, teamId, sensorId, data, pageId):	
 	team = str(team_interpreter.interpret(teamId))
 	sensor = str(sensor_interpreter.interpret(sensorId))
 	pageId1 = str(int(pageId))
@@ -73,3 +59,4 @@ class PageInfo(): #Need to analice more that
     def __init__(self, *args, **kwargs):
         self.size = 0
         self.content = []
+		
