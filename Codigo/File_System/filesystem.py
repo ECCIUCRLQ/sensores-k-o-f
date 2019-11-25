@@ -4,11 +4,8 @@ import math
 from time import time
 import socket
 
-memory_size = 0
-
-def init(size_of_memory):
-	global memory_size
-	memory_size = size_of_memory
+memory_size = int(sys.argv[1])
+fixed_memory = int(sys.argv[1])
 	
 
 if (len(sys.argv)) == 2:	
@@ -22,11 +19,11 @@ if (len(sys.argv)) == 2:
                      socket.SOCK_DGRAM) # UDP
 	sock.bind((UDP_IP, UDP_PORT))
 	
+	memory_meta = 8
 	bin_file = open("bin.txt", "wb")
 	bin_file.write((memory_meta).to_bytes(4, "big")) #Meta data is the first number of the binary file
 	bin_file.write((memory_size).to_bytes(4, "big"))
 	bin_file.close()
-	memory_meta = 8
 	
 	
 	#Socket loop 
@@ -48,15 +45,42 @@ if (len(sys.argv)) == 2:
 				f.write((int(time.time())).to_bytes(4, "big")) #Mod_Date
 				memory_meta += 17
 				f.seek(offset)
-				for i in range(6:(file_size + 5)):
+				for i in range(6:(file_size + 6)):
 					f.write((data[i]).to_bytes(1, "big"))
 				f.close()
 				memory_size = offset #change this to package size
-				msm = memory_size - 4
-				#sock.sendto(msm, (addr)) returns available memory
+				f.seek(4)
+				f.write((memory_size).to_bytes(4,"big"))
+				msm = struct.pack("BBI", 0, data[1], (memory_size - memory_meta)) #Packs info
+				sock.sendto(msm, (addr)) #returns available memory
+			elif (data[0] == 1):
+				f = open("bin.txt", "rb+")
+				founded = False
+				memory_counter = 8
+				current_size = 0
+				while !founded and counter < memory_meta:
+					f.seek(memory_counter)
+					current_id = f.read(1)
+					if(current_id == data[1]): #if page_id match
+						founded = True
+						f.seek(counter + 1)
+						byte_size = f.read(4) #Reads size of page
+						current_size = struct.unpack("I", byte_size)
+						f.seek(counter + 5)
+						byte_offset = f.read(4) #Reads page offset
+						offset = struct.unpack("I", byte_offset)
+						f.seek(offset)
+						to_send = f.read(current_size) #Maybe a byte Array here
+						package_format = "=BB" + str(len(to_send)) + "s"
+						package = struct.pack(package_format, data[1], string_send)
+						sock.sendto(package, (addr))
+					else:
+						memory_counter += 17 #If the id doesnt match, move the cursor
+						
+						
 				
 			else:
-				#read file
+				pass
 				
 	
 	
