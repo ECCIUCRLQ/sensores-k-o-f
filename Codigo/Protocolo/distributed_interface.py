@@ -13,12 +13,12 @@ nodes_information = {}
 
 LOCAL_PORT = 2000
 
-MY_IP = '192.168.1.40' #Aquí va la dirección reservada K.O.F.
-IP_ML = '127.0.0.1' #Aquí va la dirección IP de la máquina con la ML
+#MY_IP = '10.1.138.157' #Aquí va la dirección reservada K.O.F.
+MY_IP = '127.0.0.1' #Aquí va la dirección reservada K.O.F.
+IP_ML = '10.1.138.157' #Aquí va la dirección IP de la máquina con la ML
 #De ML a NM
-def store_page():
-	page_size = 0
-	node_ip = select_node()
+def store_page(page_size):
+	node_ip = select_node(page_size)
 
 def receive_page():
 	#De NM a ML
@@ -55,5 +55,9 @@ def select_node(page_size):
 	#NO se contempla el caso donde ningún nodo tenga suficiente espacio
 	return node_ip
 
-def main():
+def main():	
 	nodes_information['127.0.0.1'] = 1024
+	receive_page()
+	print("Debugger")
+
+main()
