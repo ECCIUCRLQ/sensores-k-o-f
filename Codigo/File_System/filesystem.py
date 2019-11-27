@@ -23,7 +23,7 @@ if (len(sys.argv)) == 2:
 	bin_file = open("bin.txt", "wb")
 	bin_file.write((memory_meta).to_bytes(4, "big")) #Meta data is the first number of the binary file
 	bin_file.write((memory_size).to_bytes(4, "big"))
-	bin_file.close()
+	bin_file.close()f
 	
 	
 	#Socket loop 
