@@ -17,8 +17,19 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     #time.sleep(1)
     s.sendall(package)
     data = s.recv(192706)
+    print(str(data))
+    
+    time.sleep(2)
+    
+    package_format_2 = "=BB"
+    package_2 = struct.pack(package_format_2, 1, 1)
+    
+    s.sendall(package_2)
+    print("Mandé paquete lectura")
+    data = s.recv(692000)
+    print(str(data))
+    information = struct.unpack("=I", data[2:6])
+    print("La pagina que guarde es: " + str(information[0]))
         
     s.shutdown(1)
     s.close()
-
-print('Received', repr(data))
