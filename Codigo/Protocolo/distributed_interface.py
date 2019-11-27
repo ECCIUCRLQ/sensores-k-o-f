@@ -5,11 +5,11 @@ import socket
 import struct
 import threading
 
-distributed_page_table = {}
-nodes_information = {}
+distributed_page_table = {} #Dicccionario paginas
+nodes_information = {} #Diccionario nodos
 
 ML_ID_PORT = 2000 # Corregir por 2000
-ID_NM_PORT = 3114 # Corregir 3114
+ID_NM_PORT = 3115 # Corregir 3114
 BROADCAST_NODE_PORT = 8000 #Corregir 5000
 
 #MY_IP = '10.1.138.157' # Aquí va la dirección reservada K.O.F.
@@ -48,6 +48,10 @@ def envio_nm(paquete, Direccion_IP):
 		# ~ #time.sleep(1)
 		s.sendall(paquete)
 		# ~ data = s.recv(192706)
+		
+		data = s.recv(692000)
+		if(data[0] == 2):
+			print ("Se recibio el ok. Vamonos")
 			
 		#s.shutdown(1)
 		s.close()
@@ -74,6 +78,8 @@ def receive_page():
 	for key, value in nodes_information.items() :
 		print (key, value)
 		
+	#Termina logica broadcast
+		
 	if(data[0] == 5): # Caso de registro de nodo UDP (Por eso va al principio)
 		paquete = struct.pack("=B", 2)
 		envio_nm(paquete, IP_NM)
@@ -88,7 +94,7 @@ def receive_page():
 			try:
 				while True:
 					data = conn.recv(192706) # Tamaño máximo de las páginas de todos los equipos
-					if data[0] == 0: #Guardar pagina
+					if data[0] == 0: #Guardar pagina # Pasar esta parte a nodo de memoria. Cola interprocesos
 						distributed_page_table[str(addr[0])] = data[1]
 						print(distributed_page_table[str(addr[0])])
 						package_struct = "=BBI" + str(len(data) - 6) + "s" # Me envian la pagina
@@ -96,13 +102,26 @@ def receive_page():
 						info = struct.unpack(package_struct, data)
 						print ("El paquete fue recibido desde la ip " + "El string recibido es: " + str(info[1]))
 						envio_nm(data, select_node(tamanio[0])) # Busco la ip del nodo, y envio
-					if data[0] == 1:
-						print ("Se lee")  
+						data = s.recv(692000)
+						if(data[0] == 2):
+							print ("Se recibio el ok. Vamonos")
+					
+					if data[0] == 1: #Se lee una pagina de memoria. Este es el paquete que envia de ID a NM
+						page_id = data[1]
+						for ip, page in distributed_page_table.items():    # for name, age in dictionary.iteritems():  (for Python 2.x)
+							if page == page_id:
+								used_ip = ip
+								break
+								
+						envio_nm(paquete, used_ip)
+						 
 					if not data:
 						break
 					conn.sendall(data)
 			except Exception:
 				s.close() 
+	
+	
 
 def main():	
 	# ~ nodes_information['127.0.0.1'] = 1024
