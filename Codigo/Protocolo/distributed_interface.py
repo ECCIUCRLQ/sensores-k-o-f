@@ -7,8 +7,7 @@ import threading
 import logging
 import sys
 
-distributed_page_table_ip = [] #Dicccionario paginas
-distributed_page_table_values = [] #Dicccionario paginas
+distributed_page_table = {} #Dicccionario paginas
 nodes_information = {} #Diccionario nodos
 
 broadcast_direction = sys.argv[1]
@@ -206,9 +205,7 @@ def transmission_thread():
 						package_struct = "=BBI" + str(len(data) - 6) + "s" # Me envian la pagina
 						tamanio = struct.unpack("=I", data[2:6])
 						print("Antes de guardar id de pagina en el diccionario")
-						distributed_page_table_ip.append(str(addr[0]))
-						distributed_page_table_values.append(data[1])
-						
+						distributed_page_table[str(data[1])]=str(addr[0]) # Agrega ID Pagina como Key y Guarda el ip
 						print("Despues de guardar id de pagina en diccionario")
 						#print(distributed_page_table[str(select_node(tamanio[0]))])
 						info = struct.unpack(package_struct, data)
@@ -227,10 +224,14 @@ def transmission_thread():
 						print("Entre al if de lectura")
 						page_id = data[1]
 						used_ip = ""
-						for i in range(0,len(distributed_page_table_values)):
-							if(str(distributed_page_table_values[i]) == str(page_id)):
-								used_ip = distributed_page_table_ip[i]
+						for id in distributed_page_table:
+							if str(id) == str(page_id):
+								used_ip = distributed_page_table.get(id)
 								break
+						# for i in range(0,len(distributed_page_table_values)):
+						# 	if(str(distributed_page_table_values[i]) == str(page_id)):
+						# 		used_ip = distributed_page_table_ip[i]
+						# 		break
 						#for ip, page in distributed_page_table.items(): #for name, age in dictionary.iteritems():  (for Python 2.x)
 							#print("Pagina es: " + str(page) + " con IP: " + str(ip))
 							#print(str(page))
