@@ -12,7 +12,7 @@ fixed_memory = int(sys.argv[1])
 broadcast_direction = sys.argv[2]
 memory_meta = 0
 registered = False
-Broadcast_NM = 8000 # Puerto correcto es el 5000
+Broadcast_NM = 5000 # Puerto correcto es el 5000
 MY_IP = '' 			# Poner la ip de la maquina
 Port_NM = 3114 		# Correcto
 
@@ -49,25 +49,25 @@ def transmission_thread():
 				print('Connected by', addr)
 				try:
 					data = conn.recv(192706) # Tamaño máximo de las páginas de todos los equipos
-					print(data)
+					# ~ print(data)
 					if(data[0] == 0): #Expected structure: Operation, ID_Page, Page_Size, Data
 						#Meta structure: Page_ID, Size, Offset, Creation_Date, Consult_Date
 						f = open("bin.txt", "rb+")
 						f.seek(memory_meta)
 						f.write((data[1]).to_bytes(1, "big")) #Escribe el page_Id
 						file_size = struct.unpack("I", data[2:6]) #Recupera el tamanio de pagina
-						print("Guardando, el tamano de pagina es " + str(file_size))
-						print("Ademas, se escribe por la posicion " + str(memory_size))
+						# ~ print("Guardando, el tamano de pagina es " + str(file_size))
+						# ~ print("Ademas, se escribe por la posicion " + str(memory_size))
 						#f.seek(memory_size - file_size[0])
 						f.write((file_size[0]).to_bytes(4, "little")) #Escribe tamanio de pagina
 						offset = memory_size - file_size[0]
-						print("Cuando escribo, el offset es" + str(offset))
+						# ~ print("Cuando escribo, el offset es" + str(offset))
 						f.write((offset).to_bytes(4, "little"))
-						f.write((int(time.time())).to_bytes(4, "big")) #Creation_Date
-						f.write((int(time.time())).to_bytes(4, "big")) #Mod_Date
+						f.write((int(time.time())).to_bytes(4, "little")) #Creation_Date
+						f.write((int(time.time())).to_bytes(4, "little")) #Mod_Date
 						memory_meta += 17
 						f.seek(offset)
-						print("Llegue hasta offset")
+						# ~ print("Llegue hasta offset")
 						for i in range(6,(file_size[0] + 6)):
 							f.write((data[i]).to_bytes(1, "big"))
 						memory_size = offset #change this to package size
@@ -75,12 +75,12 @@ def transmission_thread():
 						f.write((memory_size).to_bytes(4,"big"))
 						msm = struct.pack("=BBI", 2, data[1], (memory_size - memory_meta)) #Packs info
 						conn.sendall(msm) # returns available memory
-						f.seek(offset)
-						informacion = struct.unpack("=I", f.read(4))
-						print(informacion[0])
-						print("Llegue hasta close")
+						# ~ f.seek(offset)
+						# ~ informacion = struct.unpack("=I", f.read(4))
+						# ~ print(informacion[0])
+						# ~ print("Llegue hasta close")
 						f.close()
-						print("Pase el close")
+						# ~ print("Pase el close")
 						
 					elif (data[0] == 1):
 						print("Entro a lectura")
@@ -129,6 +129,9 @@ def transmission_thread():
 								# package = struct.pack(package_format, 3, data[1], int(to_send[0]))
 								package = struct.pack("BB", 3, data[1])
 								package += to_send
+								f.seek(memory_counter + 12)
+								f.write((int(time.time())).to_bytes(4, "little"))
+								f.close()
 								print(str(package))
 								conn.sendall(package)
 							else:
@@ -147,7 +150,23 @@ def transmission_thread():
 				except Exception:
 					print("Termino antes")
 def console_Thread():
-	print("Hacer")
+	global memory_meta
+	while(True):
+		print("En caso de querer desplegar el listado de paginas, escriba ls")
+		readed_value = str(input())
+		if(readed_value == "ls"):
+			f = open("bin.txt", "rb")
+			id_counter = 8
+			while(id_counter < memory_meta):
+				f.seek(id_counter)
+				value = int.from_bytes(f.read(1), "big")
+				page_size = int.from_bytes(f.read(4), "little")
+				f.seek(id_counter + 9)
+				creation_date = time.ctime(int.from_bytes(f.read(4), "little"))
+				consult_date = time.ctime(int.from_bytes(f.read(4), "little"))
+				print("ID_Pagina\tTamano\tFecha Creacion\t\tFecha Consulta")
+				print("% d\t\t%d\t%s\t%s" %(value, page_size, creation_date, consult_date))
+				id_counter += 17
 		
 
 if (len(sys.argv)) == 3:	
