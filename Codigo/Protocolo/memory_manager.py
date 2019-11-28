@@ -4,44 +4,64 @@ import os
 import team_interpreter
 import sensor_interpreter
 import time
+import socket
+import struct
 #Imports
 
-num_pages = 0
+HOST = '127.0.0.1'
+PORT = 2000        # The port used by the server
+
+max_pages = 4
+active_pages = 0
 pages_list = {}
 
+PRIMARY = 0
+SECUNDARY = 1 
 
-def create_page(identifier):
-	# ~ global num_pages
+def create_page(page_id):
+	global active_pages
 	# ~ global pages_list
-	identifier = identifier + 1
-	pages_list[identifier] = PageInfo()
-	return identifier
-	
-
-# ~ def create_id():
-	# ~ global num_pages
-	# ~ identifier = hex(num_pages)
-	# ~ num_pages += 1
-	# ~ return identifier
+	print(str(active_pages))
+	if(active_pages < 4):
+		pages_list[page_id] = PageInfo()
+		active_pages += 1
+		return page_id
+	else:
+		print("No puede crear mas paginas")
 	
 #pageID como quinto argumento de lo de abajo
 def store(date, teamId, sensorId, data, pageId):	
 	team = str(team_interpreter.interpret(teamId))
 	sensor = str(sensor_interpreter.interpret(sensorId))
-	pageId1 = str(int(pageId))
-	path = "./pages/" + team
-	if(os.path.exists(path)==False):
+	pageId1 = str(pageId)
+	print(pageId1)
+	folder_path = "./pages/" + team #Idea de carpeta por sensor equipo recolocar
+	if(os.path.exists(folder_path)==False):
 		os.makedirs(path)
-		
-	path = path + sensor + pageId1 + ".txt"
-	file = open(str(path), "a")
-	file.write("%d" % int(date) + " " + "%f" % float(data) + " \n")
-	file.close()
+	team_folder = os.path.join(folder_path, sensor + pageId1 + ".txt")
+	
+	if(os.path.exists(team_folder)!=False):	
+		#path = path + sensor + pageId1 + ".txt"
+		print("El documento existe")
+		tamanio = os.stat(team_folder)
+		print("EL TAMANIO REGISTRADO ES:        "+str(tamanio.st_size))
 
-def  new_page(identifier):
-	global pages_list
-
-	pass
+		if(int(tamanio.st_size) < 1024):
+			if(active_pages < 4):
+				file = open(str(team_folder), "a")
+				file.write("%d" % int(date) + " " + "%f" % float(data) + " \n")
+				file.close()
+		else:
+			print("Ocupo Swap")
+			swap(team_folder)
+	else:
+		if(int(active_pages) < 4):
+			file = open(str(team_folder), "a")
+			file.write("%d" % int(date) + " " + "%f" % float(data) + " \n")
+			file.close()
+		else:
+			print("Ocupo Swap")
+			swap(team_folder)
 
 def read(teamId, sensorId, pageId):
 	vector = []
@@ -54,8 +74,40 @@ def read(teamId, sensorId, pageId):
 			vector.append(myline)
 	return vector
 
+# with open('data.txt', 'r') as file:
+#     data = file.read().replace('\n', '')
 
-class PageInfo(): #Need to analice more that
+def swap(page_path):
+	with open(page_path, 'r') as file:
+		data = file.read.replace('\n', '')
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect((HOST, PORT))	
+	package_format = "=BBI"
+	packaged_data = struct.pack("S", data)
+	package = struct.pack(package_format, 0, 1, 4)
+	package += packaged_data
+	
+	s.sendall(package)
+    data = s.recv(692000)
+    print(str(data))
+    
+    time.sleep(2)
+    
+    package_format_2 = "=BB"
+    package_2 = struct.pack(package_format_2, 1, 1)
+    
+    s.sendall(package_2)
+    print("Mandé paquete lectura")
+    data = s.recv(692000)
+    print(str(data))
+    information = struct.unpack("=I", data[2:6])
+    print("La pagina que guarde es: " + str(information[0]))
+        
+    s.shutdown(1)
+    s.close()
+
+
+class PageInfo():
     def __init__(self, *args, **kwargs):
         self.size = 0
         self.content = []
