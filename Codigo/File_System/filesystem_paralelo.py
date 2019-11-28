@@ -12,7 +12,7 @@ fixed_memory = int(sys.argv[1])
 broadcast_direction = sys.argv[2]
 memory_meta = 0
 registered = False
-Broadcast_NM = 5000 # Puerto correcto es el 5000
+Broadcast_NM = 8000 # Puerto correcto es el 5000
 MY_IP = '' 			# Poner la ip de la maquina
 Port_NM = 3114 		# Correcto
 

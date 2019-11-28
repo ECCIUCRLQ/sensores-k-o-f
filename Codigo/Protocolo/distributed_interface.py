@@ -7,7 +7,8 @@ import threading
 import logging
 import sys
 
-distributed_page_table = {} #Dicccionario paginas
+distributed_page_table_ip = [] #Dicccionario paginas
+distributed_page_table_values = [] #Dicccionario paginas
 nodes_information = {} #Diccionario nodos
 
 broadcast_direction = sys.argv[1]
@@ -17,8 +18,8 @@ ID_NM_PORT = 3114 # Corregir 3114
 BROADCAST_NODE_PORT = 8000 #Corregir 5000
 
 #MY_IP = '10.1.138.157' # Aquí va la dirección reservada K.O.F.
-MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
-IP_ML = '10.1.138.157' 	# Aquí va la dirección IP de la máquina con la ML
+#MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
+IP_ML = '10.1.137.71' 	# Aquí va la dirección IP de la máquina con la ML
 IP_NM = '' 				# Esta será la dirección IP tomada del el broadcast
 
 # De ML a NM
@@ -74,6 +75,7 @@ def ok_broadcast(paquete, Direccion_IP):
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.connect((Direccion_IP, ID_NM_PORT))
 		s.sendall(paquete)
+		print("Marco conectado")
 		s.close()
 
 # def receive_page():
@@ -167,6 +169,8 @@ def broadcast_thread():
 	client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 	client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 	client.bind((broadcast_direction, BROADCAST_NODE_PORT ))
+	
+	print("Se empieza a recibir por udp")
 
 	data, addr = client.recvfrom(692000)
 	IP_NM = str(addr[0])
@@ -185,7 +189,7 @@ def transmission_thread():
 	# ~ while True:	
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		s.bind((MY_IP, ML_ID_PORT))
+		s.bind((IP_ML, ML_ID_PORT))
 		print("Abri socket")
 		s.listen()
 		conn, addr = s.accept()
@@ -202,9 +206,11 @@ def transmission_thread():
 						package_struct = "=BBI" + str(len(data) - 6) + "s" # Me envian la pagina
 						tamanio = struct.unpack("=I", data[2:6])
 						print("Antes de guardar id de pagina en el diccionario")
-						distributed_page_table[str(select_node(tamanio[0]))] = data[1]
+						distributed_page_table_ip.append(str(addr[0]))
+						distributed_page_table_values.append(data[1])
+						
 						print("Despues de guardar id de pagina en diccionario")
-						print(distributed_page_table[str(select_node(tamanio[0]))])
+						#print(distributed_page_table[str(select_node(tamanio[0]))])
 						info = struct.unpack(package_struct, data)
 						print ("Page_Id: " + str(info[1]))
 						paquete_ok_ml = envio_nm(data, select_node(tamanio[0])) # Busco la ip del nodo, y envio
@@ -221,10 +227,18 @@ def transmission_thread():
 						print("Entre al if de lectura")
 						page_id = data[1]
 						used_ip = ""
-						for ip, page in distributed_page_table.items(): #for name, age in dictionary.iteritems():  (for Python 2.x)
-							if page == page_id:
-								used_ip = ip
+						for i in range(0,len(distributed_page_table_values)):
+							if(str(distributed_page_table_values[i]) == str(page_id)):
+								used_ip = distributed_page_table_ip[i]
 								break
+						#for ip, page in distributed_page_table.items(): #for name, age in dictionary.iteritems():  (for Python 2.x)
+							#print("Pagina es: " + str(page) + " con IP: " + str(ip))
+							#print(str(page))
+							#print(str(page_id))
+							#if str(page) == str(page_id):
+								#print("Si es la ip que encontre")
+								#used_ip = ip
+								#break
 						print("IP es: " + str(used_ip))
 						paquete_lectura_nm = struct.pack("=BB", data[0], data[1])
 						paquete_regreso_ml = envio_nm(paquete_lectura_nm, used_ip)
