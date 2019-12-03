@@ -1,25 +1,30 @@
 #import operationcode_interpreter
 #import packer
 import queue
+import select
 import socket
 import struct
 import threading
 import logging
 import sys
+from ipcqueue import sysvmq
 
-distributed_page_table_ip = [] #Dicccionario paginas
-distributed_page_table_values = [] #Dicccionario paginas
+distributed_page_table = {} #Dicccionario paginas
 nodes_information = {} #Diccionario nodos
 
 broadcast_direction = sys.argv[1]
 
 ML_ID_PORT = 2000 # Corregir por 2000
 ID_NM_PORT = 3114 # Corregir 3114
+ID_ID_PORT = 6666
 BROADCAST_NODE_PORT = 8000 #Corregir 5000
 
+ACTIVE = False
+buzon_de_hilos = sysvmq.Queue(1)
+
 #MY_IP = '10.1.138.157' # Aquí va la dirección reservada K.O.F.
-#MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
-IP_ML = '10.1.137.71' 	# Aquí va la dirección IP de la máquina con la ML
+MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
+IP_ML = '10.1.137.101' 	# Aquí va la dirección IP de la máquina con la ML
 IP_NM = '' 				# Esta será la dirección IP tomada del el broadcast
 
 # De ML a NM
@@ -75,91 +80,81 @@ def ok_broadcast(paquete, Direccion_IP):
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.connect((Direccion_IP, ID_NM_PORT))
 		s.sendall(paquete)
-		print("Marco conectado")
+		print("NM conectado " + str(Direccion_IP))
 		s.close()
 
-# def receive_page():
-# 	global IP_NM
-	
-# 	# Server broadcast
-	
-# 	client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
-# 	client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-# 	client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+# Se implementa el codigo propio de la competencia de todas las ID pasivas
+#def champions_mieo():
+	#
+# Rutina cuando el distribuido 
+def active_thread():
+	global buzon_de_hilos 
+	client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+	client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+	client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+	client.settimeout(0.2)
+	while True:
+		try:
+			packet = buzon_de_hilos.get(block = True, timeout=2)
+			client.sendto(packet, (broadcast_direction, ID_ID_PORT))
 
-# 	client.bind((broadcast_direction, BROADCAST_NODE_PORT ))
-# 	data, addr = client.recvfrom(1024)
-# 	IP_NM = str(addr[0])
-# 	print("Hola, recibí desde el puerto " + IP_NM)
-# 	client.close() #Se acaba el broadcast
-	
-# 	tamano = struct.unpack("=I", data[1:5])
-# 	print (tamano[0])
-# 	nodes_information[IP_NM] = tamano[0]
-# 	nodes_information['10.99.99.99'] =500
-# 	for key, value in nodes_information.items() :
-# 		print (key, value)
-		
-# 	# Termina logica broadcast
-		
-# 	if(data[0] == 5): # Caso de registro de nodo UDP (Por eso va al principio)
-# 		paquete = struct.pack("=B", 2)
-# 		ok_broadcast(paquete, IP_NM)
-	
-# 	# ~ while True:	
-# 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-# 		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-# 		s.bind((MY_IP, ML_ID_PORT))
-# 		print("Abri socket")
-# 		s.listen()
-# 		conn, addr = s.accept()
-# 		print("Accept")
-# 		#package_format = "B" + str(len(page_size)) + "s"
-# 		with conn:
-# 			print('Connected by', addr)
-# 			while True:
-# 				try:
-# 					print("Empezando a recibir")
-# 					data = conn.recv(692000) # Tamaño máximo de las páginas de todos los equipos
-# 					print("Recibe algo: " + str(data))
-# 					if data[0] == 0: # Guardar pagina. Pasar esta parte a nodo de memoria. Cola interprocesos
-# 						package_struct = "=BBI" + str(len(data) - 6) + "s" # Me envian la pagina
-# 						tamanio = struct.unpack("=I", data[2:6])
-# 						print("Antes de guardar id de pagina en el diccionario")
-# 						distributed_page_table[str(select_node(tamanio[0]))] = data[1]
-# 						print("Despues de guardar id de pagina en diccionario")
-# 						print(distributed_page_table[str(select_node(tamanio[0]))])
-# 						info = struct.unpack(package_struct, data)
-# 						print ("Page_Id: " + str(info[1]))
-# 						paquete_ok_ml = envio_nm(data, select_node(tamanio[0])) # Busco la ip del nodo, y envio
-# 						print("Se recibe paquete OK en ID: " + str(paquete_ok_ml))
-# 						conn.sendall(paquete_ok_ml)
-# 						print ("Se regresa de la subrutina envio_nm")
-# 						s.close()
-# 						print ("Ya me cerre")
-# 						#data = s.recv(692000)
-# 						#if(data[0] == 2):
-# 						#	print ("Se recibio el OK")
-					
-# 					if data[0] == 1: # Se lee una pagina de memoria. Este es el paquete que envia de ID a NM
-# 						print("Entre al if de lectura")
-# 						page_id = data[1]
-# 						used_ip = ""
-# 						for ip, page in distributed_page_table.items(): #for name, age in dictionary.iteritems():  (for Python 2.x)
-# 							if page == page_id:
-# 								used_ip = ip
-# 								break
-# 						print("IP es: " + str(used_ip))
-# 						paquete_lectura_nm = struct.pack("=BB", data[0], data[1])
-# 						paquete_regreso_ml = envio_nm(paquete_lectura_nm, used_ip)
-# 						conn.sendall(paquete_regreso_ml)
-# 						s.close()
-# 					#if not data:
-# 						#conn.sendall(data)
-# 						#break
-# 				except Exception:
-# 					s.close()
-# 					print("Esta brincando la Excepcion")
+		except queue.Empty:
+			packetStruct = "=BBBBB"
+			packet = struct.pack(packetStruct, 2,0,0,0,0)
+			client.sendto(packet, (broadcast_direction, ID_ID_PORT))
+
+
+
+
+# Hilo que siempre se ejecutara cuando una ID quede como pasiva
+def passive_thread():
+	global ID_ID_PORT
+	global ACTIVE
+
+	server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
+	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+	server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+	server.bind((broadcast_direction, ID_ID_PORT ))
+
+	print("Se reciben paquetes de interfaces distribuidas")
+	while not ACTIVE:
+		readable = select.select([server], [], [], 4)
+		if readable[0]:
+			data, addr = server.recvfrom(692000)
+
+			if(data[0] == 0 and ACTIVE):
+				pass
+			elif(data[0] == 1):
+				filas1 = data[1]
+				filas2 = data[2]
+
+				dump1 = filas1*2
+				datos_tabla_paginas = data[3:(3+dump1)]
+				for index in range(0, filas1, 2):
+					distributed_page_table[data[3+index]] = data[3+index+1]
+
+				dump2 = filas2*9
+				datos_tabla_nodos = data[(3+dump1):(3+dump1+dump2)]
+				for index in range(0, filas2, 9):
+					nodes_information[data[3+index+dump1+1]] = data[3+index+dump1+5]
+			elif(data[0] == 2):
+				filas1 = data[1]
+				if filas1 != 0 :
+					filas2 = data[2]
+
+					dump1 = filas1*2
+					datos_tabla_paginas = data[3:(3+dump1)]
+					for index in range(0, filas1, 2):
+						distributed_page_table[data[3+index]] = data[3+index+1]
+
+					dump2 = filas2*9
+					datos_tabla_nodos = data[(3+dump1):(3+dump1+dump2)]
+					for index in range(0, filas2, 9):
+						nodes_information[data[3+index+dump1+1]] = data[3+index+dump1+5]
+		else:
+			champions_mieo()
+	server.close()
+	active_thread()
 
 def broadcast_thread():
 	global broadcast_direction
@@ -185,8 +180,10 @@ def broadcast_thread():
 		paquete = struct.pack("=B", 2)
 		ok_broadcast(paquete, IP_NM)
 
+# Empaquetar en cola para hacer broadcast de tabla a pasivas
 def transmission_thread():
 	# ~ while True:	
+	global buzon_de_hilos
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		s.bind((IP_ML, ML_ID_PORT))
@@ -206,9 +203,7 @@ def transmission_thread():
 						package_struct = "=BBI" + str(len(data) - 6) + "s" # Me envian la pagina
 						tamanio = struct.unpack("=I", data[2:6])
 						print("Antes de guardar id de pagina en el diccionario")
-						distributed_page_table_ip.append(str(addr[0]))
-						distributed_page_table_values.append(data[1])
-						
+						distributed_page_table[str(data[1])]=str(addr[0]) # Agrega ID Pagina como Key y Guarda el ip
 						print("Despues de guardar id de pagina en diccionario")
 						#print(distributed_page_table[str(select_node(tamanio[0]))])
 						info = struct.unpack(package_struct, data)
@@ -219,6 +214,9 @@ def transmission_thread():
 						print ("Se regresa de la subrutina envio_nm")
 						s.close()
 						print ("Ya me cerre")
+						buzon_struct = "=BBB" #fALTA EMPAQUETAR
+						buzon_de_hilos.put()
+
 						#data = s.recv(692000)
 						#if(data[0] == 2):
 						#	print ("Se recibio el OK")
@@ -227,10 +225,14 @@ def transmission_thread():
 						print("Entre al if de lectura")
 						page_id = data[1]
 						used_ip = ""
-						for i in range(0,len(distributed_page_table_values)):
-							if(str(distributed_page_table_values[i]) == str(page_id)):
-								used_ip = distributed_page_table_ip[i]
+						for id in distributed_page_table:
+							if str(id) == str(page_id):
+								used_ip = distributed_page_table.get(id)
 								break
+						# for i in range(0,len(distributed_page_table_values)):
+						# 	if(str(distributed_page_table_values[i]) == str(page_id)):
+						# 		used_ip = distributed_page_table_ip[i]
+						# 		break
 						#for ip, page in distributed_page_table.items(): #for name, age in dictionary.iteritems():  (for Python 2.x)
 							#print("Pagina es: " + str(page) + " con IP: " + str(ip))
 							#print(str(page))
@@ -264,6 +266,12 @@ def main():
 	
 	logging.info("Main    : create and start thread %d.", 2)
 	x = threading.Thread(target=transmission_thread, args=())
+	threads.append(x)
+	x.start()
+
+	# Este hilo
+	logging.info("Main    : create and start thread %d.", 3)
+	x = threading.Thread(target=passive_thread, args=())
 	threads.append(x)
 	x.start()
 
