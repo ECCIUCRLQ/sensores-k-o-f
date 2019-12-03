@@ -6,8 +6,8 @@ import memory_manager as memory_manager
 #Imports
 
 page_table = dict()
-queueR = sysvmq.Queue(2)
-queueS = sysvmq.Queue(15)
+server_queue = sysvmq.Queue(2)
+plotter_queue = sysvmq.Queue(15)
 
 s = struct.Struct("II")
 ss = struct.Struct("BIBBf")
@@ -46,7 +46,7 @@ def get_info(sensorId, teamId):
 			info = j.split(" ")
 			info1 = info[1].replace("\n", "")
 			packetInfo = s.pack(int(info[0]),int(float(info1)))
-			queueS.put(packetInfo, msg_type=1)
+			plotter_queue.put(packetInfo, msg_type=1)
 
 
 
@@ -59,7 +59,7 @@ class ProcessInfo():
 
 def main():		
 	while True:
-		packet = queueR.get(block=True, msg_type=1)
+		packet = server_queue.get(block=True, msg_type=1)
 		packetU = ss.unpack(packet)
 		if(packetU[0]==0):
 			if str((packetU[1])+(packetU[2])) not in page_table.keys():
