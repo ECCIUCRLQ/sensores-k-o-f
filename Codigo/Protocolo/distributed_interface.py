@@ -9,15 +9,15 @@ import logging
 import sys
 from ipcqueue import sysvmq
 
-distributed_page_table = {} #Dicccionario paginas
-nodes_information = {} #Diccionario nodos
+distributed_page_table = {}	# Diccionario paginas
+nodes_information = {} 		# Diccionario nodos
 
 broadcast_direction = sys.argv[1]
 
-ML_ID_PORT = 2000 # Corregir por 2000
-ID_NM_PORT = 3114 # Corregir 3114
-ID_ID_PORT = 6666
-BROADCAST_NODE_PORT = 8000 #Corregir 5000
+ML_ID_PORT = 2000 			# Corregir 2000
+ID_NM_PORT = 3114 			# Corregir 3114
+ID_ID_PORT = 6666 			# Corregir 6666
+BROADCAST_NODE_PORT = 8000 	# Corregir 5000
 
 ACTIVE = False
 buzon_de_hilos = sysvmq.Queue(1)
@@ -85,7 +85,7 @@ def ok_broadcast(paquete, Direccion_IP):
 
 # Se implementa el codigo propio de la competencia de todas las ID pasivas
 #def champions_mieo():
-	#
+
 # Rutina cuando el distribuido 
 def active_thread():
 	global buzon_de_hilos 
@@ -100,11 +100,8 @@ def active_thread():
 
 		except queue.Empty:
 			packetStruct = "=BBBBB"
-			packet = struct.pack(packetStruct, 2,0,0,0,0)
+			packet = struct.pack(packetStruct, 2, 0, 0, 0, 0)
 			client.sendto(packet, (broadcast_direction, ID_ID_PORT))
-
-
-
 
 # Hilo que siempre se ejecutara cuando una ID quede como pasiva
 def passive_thread():
@@ -139,7 +136,7 @@ def passive_thread():
 					nodes_information[data[3+index+dump1+1]] = data[3+index+dump1+5]
 			elif(data[0] == 2):
 				filas1 = data[1]
-				if filas1 != 0 :
+				if(filas1 != 0):
 					filas2 = data[2]
 
 					dump1 = filas1*2
@@ -214,8 +211,40 @@ def transmission_thread():
 						print ("Se regresa de la subrutina envio_nm")
 						s.close()
 						print ("Ya me cerre")
-						buzon_struct = "=BBB" #fALTA EMPAQUETAR
-						buzon_de_hilos.put()
+						
+						# Se crean los dump que seran usados para los nodos de memoria
+						dump1 = bytearray()
+						dump2 = bytearray()
+						
+						# Se agregan los datos de la tabla de paginas al dump1
+						for page in distributed_page_table:
+							dump1.append(page)
+							dump1.append(distributed_page_table[page])
+						
+						# Se agregan los datos de la tabla de nodos al dump2
+						for node in nodes_information:
+							dump2.append(node)
+							node_info = nodes_information[node]
+
+							ip_node = struct.pack("I", node)
+							size_node = struct.pack("I", node_info)
+
+							for i in range(4):
+								dump2.append(ip_node[i])
+
+							for i in range(4):
+								dump2.append(size_node[i])
+						
+						# Se obtienen las filas para generar el paquete de copia
+						filas1 = len(distributed_page_table)
+						filas2 = len(nodes_information)
+						
+						# Requiere revisión
+						buzon_struct = "=BBB"
+						buzon_packet = struct.pack(buzon_struct, 2, filas1, filas2)
+						buzon_packet += dump1
+						buzon_packet += dump2
+						buzon_de_hilos.put(buzon_packet)
 
 						#data = s.recv(692000)
 						#if(data[0] == 2):
