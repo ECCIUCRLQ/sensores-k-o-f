@@ -11,6 +11,7 @@ import sys
 import uuid
 import time
 from ipcqueue import sysvmq
+from subprocess import call
 
 distributed_page_table = {}	# Diccionario paginas
 nodes_information = {} 		# Diccionario nodos
@@ -153,10 +154,17 @@ def champions_mieo():
 def active_thread():
 	global buzon_de_hilos 
 	
-	# Apropiacion de la direccion IP para todas las ID
-	os.system('sudo ifconfig eno1 down')
-	os.system('sudo ifconfig eno1 ' + IP_ML)
-	os.system('sudo ifconfig eno1 up')
+	# Apropiacion de la direccion IP para todas las ID / Version 1
+	#os.system('sudo ifconfig eno1 ' + IP_ML)
+	#os.system('sudo ifconfig eno1 down')
+	#os.system('sudo ifconfig eno1 up')
+	
+	# Apropiacion de la direccion IP para todas las ID / Version 2
+	#call(["ifconfig", "eno1", "192.168.1.20", "netmask", "255.255.255.0", "broadcast", "192.168.1.255"])
+	
+	# Apropiacion de la direccion IP para todas las ID / Version 3
+	call(["sudo", "ip", "addr", "flush", "dev", "eno1"])
+	call(["ip", "a", "add", "192.168.1.20/255.255.255.0", "dev", "eno1"])
 	
 	print("Me declaro como interfaz activa. Bomboclat rastaman.")
 
