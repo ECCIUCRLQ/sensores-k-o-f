@@ -116,12 +116,14 @@ def champions_mieo():
 		#package += ronda_ID_package
 		print("El paquete de Quiero Ser enviado es: " + str(package))
 		client.sendto(package, (broadcast_direction, ID_ID_PORT))
+		#client.sendto(package, ('0.0.0.0', ID_ID_PORT))
 		client.close()
 		
 		server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
 		server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 		server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 		server.bind((broadcast_direction, ID_ID_PORT))
+		#server.bind(('0.0.0.0', ID_ID_PORT))
 		readable = select.select([server], [], [], 2)
 		if readable[0]:
 			data, addr = server.recvfrom(1024)
@@ -130,12 +132,16 @@ def champions_mieo():
 				received_mac = struct.unpack("=BBBBBB", data[1:4])
 				if mac < received_mac:
 					perdi = True
+					#time.sleep(timeout - time.time())
+					#time.sleep(1)
 					print("Me declaro como pasiva. F")
 				else:
 					ronda_ID += 1 #Se pelea la siguiente ronda
 					
 			elif data[5] > ronda_ID: # Caso en que mi ronda no es valida
 				perdi = True
+				#time.sleep(timeout - time.time())
+				#time.sleep(1)
 				print("Me declaro como pasiva. F")
 				
 		else: # Si no recibo nada en el timeout
@@ -146,7 +152,12 @@ def champions_mieo():
 # Rutina que corro cuando gano la Champions
 def active_thread():
 	global buzon_de_hilos 
-
+	
+	# Apropiacion de la direccion IP para todas las ID
+	os.system('sudo ifconfig eno1 down')
+	os.system('sudo ifconfig eno1 ' + IP_ML)
+	os.system('sudo ifconfig eno1 up')
+	
 	print("Me declaro como interfaz activa. Bomboclat rastaman.")
 
 	semaforo_activa.release() # Se habilitan las subrutinas broadcast_thread y transmission_thread
@@ -159,25 +170,30 @@ def active_thread():
 		try:
 			packet = buzon_de_hilos.get(block=True, timeout=2)
 			client.sendto(packet, (broadcast_direction, ID_ID_PORT))
+			#client.sendto(packet, ('0.0.0.0', ID_ID_PORT))
 
 		except queue.Empty:
 			packetStruct = "=BBBBB"
 			packet = struct.pack(packetStruct, 2, 0, 0, 0, 0)
 			client.sendto(packet, (broadcast_direction, ID_ID_PORT))
+			#client.sendto(packet, ('0.0.0.0', ID_ID_PORT))
+			print("Keep alive")
 
 # Hilo que siempre se ejecutara cuando una ID quede como pasiva
 def passive_thread():
 	global ID_ID_PORT
 	global ACTIVE
 
-	server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
-	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-	server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-	server.bind((broadcast_direction, ID_ID_PORT ))
-
 	print("Se reciben paquetes de interfaces distribuidas")
 	while not ACTIVE:
-		readable = select.select([server], [], [], 4)
+		server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
+		server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+		server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		server.bind((broadcast_direction, ID_ID_PORT ))
+		#server.bind(('0.0.0.0', ID_ID_PORT ))
+		
+		#time.sleep(1)
+		readable = select.select([server], [], [], 4+3)
 		if readable[0]:
 			data, addr = server.recvfrom(692000)
 			print("Recibí Keep Alive")
@@ -229,6 +245,7 @@ def broadcast_thread():
 	client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 	client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 	client.bind((broadcast_direction, BROADCAST_NODE_PORT ))
+	#client.bind(('0.0.0.0', BROADCAST_NODE_PORT ))
 	
 	print("Se empieza a recibir por udp")
 
@@ -252,11 +269,6 @@ def transmission_thread():
 	global semaforo_activa
 
 	semaforo_activa.acquire() # Hasta que sea una interfaz activa se corre esto
-
-	# Apropiacion de la direccion IP para todas las ID
-	os.system('sudo ifconfig eno1 down')
-	os.system('sudo ifconfig eno1 ' + IP_ML)
-	os.system('sudo ifconfig eno1 up')
 
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
