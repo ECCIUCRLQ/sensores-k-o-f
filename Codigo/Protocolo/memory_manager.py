@@ -117,8 +117,31 @@ def swap(self, page_id):
 
 	return index
 
-def read(self, tamanio, position):
+def read_data(self, index, data_size):
 	print("Leyendo...")
+	readed_data = bytearray(data_size)
+	for i in range(data_size):
+		readed_data[i] = self.local_memory[index+i]
+	unpacked_data = struct.unpack("=If", readed_data)
+	return unpacked_data[0], unpacked_data[1]
+
+def get_page(self, page_id):
+	page = []
+	index = 0
+	data_size = 5
+	if(self.is_in_principal(page_id)):
+		index = self.page_table[page_id]
+	else:
+		index = self.swap(page_id)
+	for i in range (index, index+self.page_size, data_size):
+		date, data = self.read_data(index, data_size)
+		page.append(date)
+		page.append(data)
+	self.page_table[page_id] = -1
+	self.pages.remove(page_id)
+	self.empty_page(index)
+	
+	return page
 
 def get_secundary_page(self, page_id, index):
 	new_page = bytearray(1)
