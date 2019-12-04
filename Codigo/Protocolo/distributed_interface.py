@@ -28,7 +28,7 @@ semaforo_activa = threading.Semaphore()
 
 #MY_IP = '10.1.138.157' # Aquí va la dirección reservada K.O.F.
 MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
-IP_ML = '10.1.137.101' 	# Aquí va la dirección IP de la máquina con la ML
+IP_ML = '192.168.1.20' 	# Aquí va la dirección IP de la máquina con la ML
 IP_NM = '' 				# Esta será la dirección IP tomada del el broadcast
 
 # De ML a NM
@@ -252,6 +252,11 @@ def transmission_thread():
 	global semaforo_activa
 
 	semaforo_activa.acquire() # Hasta que sea una interfaz activa se corre esto
+
+	# Apropiacion de la direccion IP para todas las ID
+	os.system('sudo ifconfig eno1 down')
+	os.system('sudo ifconfig eno1 ' + IP_ML)
+	os.system('sudo ifconfig eno1 up')
 
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
