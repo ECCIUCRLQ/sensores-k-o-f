@@ -23,6 +23,7 @@ BROADCAST_NODE_PORT = 8000 	# Corregir 5000
 
 ACTIVE = False
 buzon_de_hilos = queue.Queue(1)
+semaforo_activa = threading.Semaphore()
 
 #MY_IP = '10.1.138.157' # Aquí va la dirección reservada K.O.F.
 MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
@@ -128,13 +129,15 @@ def champions_mieo():
 			ACTIVE = True
 			
 		client.close()
-				
-	
-	
 
 # Rutina cuando el distribuido 
 def active_thread():
 	global buzon_de_hilos 
+
+	print("Me declaro como interfaz activa. Bomboclat rastaman.")
+
+	semaforo_activa.release() # Se habilitan las subrutinas broadcast_thread y transmission_thread
+
 	client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 	client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 	client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -200,8 +203,11 @@ def passive_thread():
 	active_thread()
 
 def broadcast_thread():
+	global semaforo_activa
 	global broadcast_direction
 	global BROADCAST_NODE_PORT
+
+	semaforo_activa.acquire() # Hasta que sea una interfaz activa se corre esto
 
 	client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
 	client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -227,9 +233,13 @@ def broadcast_thread():
 def transmission_thread():
 	# ~ while True:	
 	global buzon_de_hilos
+	global semaforo_activa
+
+	semaforo_activa.acquire() # Hasta que sea una interfaz activa se corre esto
+
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		s.bind((IP_ML, ML_ID_PORT))
+		s.bind((IP_ML, ML_ID_PORT)) # Direccion mia como servidor
 		print("Abri socket")
 		s.listen()
 		conn, addr = s.accept()
@@ -332,8 +342,6 @@ def transmission_thread():
 					s.close()
 					print("Esta brincando la Excepcion")
 
-
-	
 def main():	
 	#nodes_information['127.0.0.1'] = 1024
 	threads = list()
@@ -348,7 +356,7 @@ def main():
 	threads.append(x)
 	x.start()
 
-	# Este hilo
+	# Este hilo corre comportamiento pasivo, activo y Champions
 	logging.info("Main    : create and start thread %d.", 3)
 	x = threading.Thread(target=passive_thread, args=())
 	threads.append(x)
