@@ -60,3 +60,25 @@ def page_saved(op_code, page_id, memory_size):
     package_format = "=BBI"
     package = struct.unpack(package_format, op_code, page_id, memory_size)
     return package
+
+def unpack_read_response(packege, page_id, page_size):
+    op_code_res = packege[0]
+    id_page_res = packege[1]
+    data = packege[2:(2+page_size)]
+
+    if op_code_res == 4:
+
+        print ("Se produjo error al devolver página")
+        return 1
+
+    else:
+
+        if id_page_res == page_id:
+
+            print ("Se obtuvo la página exitosamente")
+            return data
+
+        else:
+
+            print ("Se obtuvo página incorrecta")
+            return 1
