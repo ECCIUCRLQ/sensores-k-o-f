@@ -7,6 +7,8 @@ import struct
 import threading
 import logging
 import sys
+import uuid
+import time
 from ipcqueue import sysvmq
 
 distributed_page_table = {}	# Diccionario paginas
@@ -20,7 +22,7 @@ ID_ID_PORT = 6666 			# Corregir 6666
 BROADCAST_NODE_PORT = 8000 	# Corregir 5000
 
 ACTIVE = False
-buzon_de_hilos = sysvmq.Queue(1)
+buzon_de_hilos = queue.Queue(1)
 
 #MY_IP = '10.1.138.157' # Aquí va la dirección reservada K.O.F.
 MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
@@ -84,7 +86,51 @@ def ok_broadcast(paquete, Direccion_IP):
 		s.close()
 
 # Se implementa el codigo propio de la competencia de todas las ID pasivas
-#def champions_mieo():
+def champions_mieo():
+	global ACTIVE
+	mac = uuid.getnode()
+	perdi = False
+	ronda_ID = 0
+	timeout = time.time()+3
+	
+	while not ACTIVE and not perdi and time.time() < timeout :
+		client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+		client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+		client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		client.settimeout(0.2)
+		package_format = "=B"
+		package = struct.pack(package_format, 0)
+		package += mac.to_bytes(6, byteorder='big')
+		ronda_ID_package = struct.pack("=B", ronda_ID)
+		package += ronda_ID_package
+		client.sendto(package, (broadcast_direction, ID_ID_PORT))
+		client.close()
+		
+		server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP
+		server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+		server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		server.bind((broadcast_direction, ID_ID_PORT))
+		readable = select.select([server], [], [], 2)
+		if readable[0]:
+			received = server.recvfrom(1024)
+			if received[7] == ronda_ID:
+				received_mac = struct.unpack("=l", received[1:7])
+				if mac < received_mac:
+					perdi = True
+					
+				else:
+					ronda_ID += 1 #Se pelea la siguiente ronda
+					
+			elif received[7] > ronda_ID: # Caso en que mi ronda no es valida
+				perdi = True
+				
+		else: # Si no recibo nada en el timeout
+			ACTIVE = True
+			
+		client.close()
+				
+	
+	
 
 # Rutina cuando el distribuido 
 def active_thread():
@@ -95,7 +141,7 @@ def active_thread():
 	client.settimeout(0.2)
 	while True:
 		try:
-			packet = buzon_de_hilos.get(block = True, timeout=2)
+			packet = buzon_de_hilos.get(block=True, timeout=2)
 			client.sendto(packet, (broadcast_direction, ID_ID_PORT))
 
 		except queue.Empty:
@@ -218,11 +264,15 @@ def transmission_thread():
 						
 						# Se agregan los datos de la tabla de paginas al dump1
 						for page in distributed_page_table:
-							dump1.append(page)
-							dump1.append(distributed_page_table[page])
+							dump1.append(page) # lea page como id
+							dump1.append(distributed_page_table[page]) # Agrega el valor
 						
 						# Se agregan los datos de la tabla de nodos al dump2
+						id_node = 0
 						for node in nodes_information:
+							id_node += 1
+							id_node_info = struct.pack("B", id_node)
+							dump2.append(id_node_info[0]) # Agrega el id_node como identificador
 							dump2.append(node)
 							node_info = nodes_information[node]
 
