@@ -1,6 +1,7 @@
 #import operationcode_interpreter
 #import packer
 import queue
+import os
 import select
 import socket
 import struct
@@ -18,7 +19,7 @@ broadcast_direction = sys.argv[1]
 
 ML_ID_PORT = 2000 			# Corregir 2000
 ID_NM_PORT = 3114 			# Corregir 3114
-ID_ID_PORT = 6666 			# Corregir 6666
+ID_ID_PORT = 7777 			# Corregir 6666
 BROADCAST_NODE_PORT = 8000 	# Corregir 5000
 
 ACTIVE = False
@@ -90,20 +91,30 @@ def ok_broadcast(paquete, Direccion_IP):
 def champions_mieo():
 	global ACTIVE
 	mac = uuid.getnode()
+	mac_array = mac.to_bytes(6,byteorder="big")
 	perdi = False
 	ronda_ID = 0
 	timeout = time.time()+3
+	print("Estamos en competencia.")
 	
 	while not ACTIVE and not perdi and time.time() < timeout :
 		client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 		client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 		client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 		client.settimeout(0.2)
-		package_format = "=B"
-		package = struct.pack(package_format, 0)
-		package += mac.to_bytes(6, byteorder='big')
-		ronda_ID_package = struct.pack("=B", ronda_ID)
-		package += ronda_ID_package
+
+		ronda_ID_bytes = struct.pack("=B", ronda_ID)
+
+		aux = bytearray()
+		package_format = "=BBBBBBBB"
+		aux += bytearray([0])
+		aux += bytearray([mac_array[0], mac_array[1], mac_array[2], mac_array[3], mac_array[4], mac_array[5]])
+		aux += bytearray([ronda_ID_bytes[0]])
+		package = struct.pack(package_format, *(aux))
+		#package += mac.to_bytes(6, byteorder='big')
+		#ronda_ID_package = struct.pack("=B", ronda_ID)
+		#package += ronda_ID_package
+		print("El paquete de Quiero Ser enviado es: " + str(package))
 		client.sendto(package, (broadcast_direction, ID_ID_PORT))
 		client.close()
 		
@@ -113,24 +124,26 @@ def champions_mieo():
 		server.bind((broadcast_direction, ID_ID_PORT))
 		readable = select.select([server], [], [], 2)
 		if readable[0]:
-			received = server.recvfrom(1024)
-			if received[7] == ronda_ID:
-				received_mac = struct.unpack("=l", received[1:7])
+			data, addr = server.recvfrom(1024)
+			print("El paquete de Quiero Ser recibido es: " + str(data))
+			if data[5] == ronda_ID:
+				received_mac = struct.unpack("=BBBBBB", data[1:4])
 				if mac < received_mac:
 					perdi = True
-					
+					print("Me declaro como pasiva. F")
 				else:
 					ronda_ID += 1 #Se pelea la siguiente ronda
 					
-			elif received[7] > ronda_ID: # Caso en que mi ronda no es valida
+			elif data[5] > ronda_ID: # Caso en que mi ronda no es valida
 				perdi = True
+				print("Me declaro como pasiva. F")
 				
 		else: # Si no recibo nada en el timeout
 			ACTIVE = True
 			
 		client.close()
 
-# Rutina cuando el distribuido 
+# Rutina que corro cuando gano la Champions
 def active_thread():
 	global buzon_de_hilos 
 
@@ -167,6 +180,7 @@ def passive_thread():
 		readable = select.select([server], [], [], 4)
 		if readable[0]:
 			data, addr = server.recvfrom(692000)
+			print("Recibí Keep Alive")
 
 			if(data[0] == 0 and ACTIVE):
 				pass
@@ -198,10 +212,12 @@ def passive_thread():
 					for index in range(0, filas2, 9):
 						nodes_information[data[3+index+dump1+1]] = data[3+index+dump1+5]
 		else:
+			print("Me voy a la B")
 			champions_mieo()
 	server.close()
 	active_thread()
 
+# Subrutina que se corre para escuchar siempre a NM nuevos
 def broadcast_thread():
 	global semaforo_activa
 	global broadcast_direction
