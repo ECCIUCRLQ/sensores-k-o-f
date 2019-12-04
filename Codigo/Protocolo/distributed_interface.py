@@ -29,7 +29,7 @@ semaforo_activa = threading.Semaphore()
 
 #MY_IP = '10.1.138.157' # Aquí va la dirección reservada K.O.F.
 MY_IP = '127.0.0.1' 	# Aquí va la dirección reservada K.O.F.
-IP_ML = '192.168.1.20' 	# Aquí va la dirección IP de la máquina con la ML
+IP_ML = '192.168.1.210' 	# Aquí va la dirección IP de la máquina con la ML
 IP_NM = '' 				# Esta será la dirección IP tomada del el broadcast
 
 # De ML a NM
@@ -164,7 +164,7 @@ def active_thread():
 	
 	# Apropiacion de la direccion IP para todas las ID / Version 3
 	call(["sudo", "ip", "addr", "flush", "dev", "eno1"])
-	call(["ip", "a", "add", "192.168.1.20/255.255.255.0", "dev", "eno1"])
+	call(["ip", "a", "add", "192.168.1.210/255.255.255.0", "broadcast", broadcast_direction, "dev", "eno1"])
 	
 	print("Me declaro como interfaz activa. Bomboclat rastaman.")
 
@@ -285,19 +285,22 @@ def transmission_thread():
 		s.listen()
 		conn, addr = s.accept()
 		print("Accept")
+		ciclo = 0
 		#package_format = "B" + str(len(page_size)) + "s"
 		with conn:
 			print('Connected by', addr)
 			while True:
 				try:
-					print("Empezando a recibir")
+					ciclo += 1
+					print("Empezando a recibir en ciclo " + str(ciclo))
 					data = conn.recv(692000) # Tamaño máximo de las páginas de todos los equipos
 					print("Recibe algo: " + str(data))
 					if data[0] == 0: # Guardar pagina. Pasar esta parte a nodo de memoria. Cola interprocesos
 						package_struct = "=BBI" + str(len(data) - 6) + "s" # Me envian la pagina
 						tamanio = struct.unpack("=I", data[2:6])
 						print("Antes de guardar id de pagina en el diccionario")
-						distributed_page_table[str(data[1])]=str(addr[0]) # Agrega ID Pagina como Key y Guarda el ip
+						# distributed_page_table[str(data[1])]=str(addr[0]) # Agrega ID Pagina como Key y Guarda el ip
+						distributed_page_table[str(data[1])]=str(select_node(tamanio[0]))
 						print("Despues de guardar id de pagina en diccionario")
 						#print(distributed_page_table[str(select_node(tamanio[0]))])
 						info = struct.unpack(package_struct, data)
@@ -306,7 +309,7 @@ def transmission_thread():
 						print("Se recibe paquete OK en ID: " + str(paquete_ok_ml))
 						conn.sendall(paquete_ok_ml)
 						print ("Se regresa de la subrutina envio_nm")
-						s.close()
+						#s.close()
 						print ("Ya me cerre")
 						
 						# Se crean los dump que seran usados para los nodos de memoria
@@ -346,12 +349,8 @@ def transmission_thread():
 						buzon_packet += dump1
 						buzon_packet += dump2
 						buzon_de_hilos.put(buzon_packet)
-
-						#data = s.recv(692000)
-						#if(data[0] == 2):
-						#	print ("Se recibio el OK")
 					
-					if data[0] == 1: # Se lee una pagina de memoria. Este es el paquete que envia de ID a NM
+					if(data[0] == 1): # Se lee una pagina de memoria. Este es el paquete que envia de ID a NM
 						print("Entre al if de lectura")
 						page_id = data[1]
 						used_ip = ""
@@ -381,7 +380,7 @@ def transmission_thread():
 						#break
 				except Exception:
 					s.close()
-					print("Esta brincando la Excepcion")
+					print("Esta brincando la Excepcion " + str(ciclo))
 
 def main():	
 	#nodes_information['127.0.0.1'] = 1024
