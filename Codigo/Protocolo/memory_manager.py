@@ -60,14 +60,14 @@ def get_position(self):
 			available = True
 	return index
 
-def store_data(self, size, page_id, offset, data):
+def store_data(self, page_id, offset, data):
 	print("Guardando un dato...")
 	if(is_in_principal(page_id)):
 		index = self.page_table[page_id]
 	else:
 		index = swap(page_id)
 	index += offset
-	dis = 5 #Desplazamiento de 5 bytes
+	dis = 2 #Desplazamiento de 2 fecha / dato
 	for i in range(index, index+dis):
 		self.local_memory[i] = data[i-index]
 	if offset >= 1019:
@@ -140,7 +140,7 @@ def get_page(self, page_id):
 	self.page_table[page_id] = -1
 	self.pages.remove(page_id)
 	self.empty_page(index)
-	
+
 	return page
 
 def get_secundary_page(self, page_id, index):
